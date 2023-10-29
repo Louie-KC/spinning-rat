@@ -1,9 +1,9 @@
 CC = clang
 FLAGS = -Wall -pedantic
-INC = -I/opt/homebrew/Cellar/glfw/3.3.8/lib
+INC = -I./include src/glad.c
 LOC_LIB = -lglfw
 FRAMEWORKS = -framework Cocoa -framework OpenGL
 SRC = src/main.c
 
 all:
-	${CC} ${FLAGS} ${LOC_LIB} ${FRAMEWORKS} ${SRC}
+	${CC} ${SRC} ${INC} ${FRAMEWORKS} ${LOC_LIB}
