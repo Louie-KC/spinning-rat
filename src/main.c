@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 
 #ifdef __APPLE__
     #define GL_SILENCE_DEPRECATION
@@ -9,18 +10,30 @@
 #define SCREEN_WIDTH 640
 #define SCREEN_HEIGHT 480
 #define INFO_BUFFER_SIZE 512
+#define SHADER_SOURCE_MAX_LEN 4096
 
-const char *vertexShaderSrc = "#version 410 core\n"
-    "layout (location = 0) in vec3 a_pos;"
-    "void main() {\n"
-    "    gl_Position = vec4(a_pos.x, a_pos.y, a_pos.z, 1.0f);\n"
-    "}\0";
+int readShaderSource(const char* path, char *dest) {
+    FILE *f;
+    int success = 0;
 
-const char *fragShaderSrc = "#version 410 core\n"
-    "out vec4 o_colour;"
-    "void main() {\n"
-    "    o_colour = vec4(1.0f, 1.0f, 1.0f, 1.0f);\n"
-    "}\0";
+    dest[0] = '\0';
+    f = fopen(path, "r");
+    
+    if (f) {
+        char line[255];
+        unsigned int pos = 0;
+        while (fgets(line, SHADER_SOURCE_MAX_LEN, f) != NULL) {
+            unsigned int lineLen = strlen(line);
+            strcpy(dest + pos, line);
+            pos += lineLen;
+        }
+        fgets(dest, SHADER_SOURCE_MAX_LEN, f);
+        success = 1;
+    }
+
+    fclose(f);
+    return success;
+}
 
 int compileShader(unsigned int* shader, int type, const char *source) {
     int status;
@@ -39,14 +52,14 @@ int compileShader(unsigned int* shader, int type, const char *source) {
 // return: shader program
 unsigned int linkShaders(unsigned int vertexShader, unsigned int fragmentShader) {
     int success = 0;
-    char infoLogBuffer[512];
+    char infoLogBuffer[INFO_BUFFER_SIZE];
     unsigned int program = glCreateProgram();
     glAttachShader(program, vertexShader);
     glAttachShader(program, fragmentShader);
     glLinkProgram(program);
     glGetProgramiv(program, GL_LINK_STATUS, &success);
     if (!success) {
-        glGetProgramInfoLog(program, 512, NULL, infoLogBuffer);
+        glGetProgramInfoLog(program, INFO_BUFFER_SIZE, NULL, infoLogBuffer);
         printf("Shader link failure\nError: %s\n", infoLogBuffer); 
     }
     return program;
@@ -87,11 +100,22 @@ int main(void) {
         return -1;
     }
 
-    // compile shaders
+    // read and compile shaders
     unsigned int vertexShader = 0;
     unsigned int fragShader = 0;
-    compileShader(&vertexShader, GL_VERTEX_SHADER, vertexShaderSrc);
-    compileShader(&fragShader, GL_FRAGMENT_SHADER, fragShaderSrc);
+
+    char vertexShaderSource[SHADER_SOURCE_MAX_LEN];
+    char fragmentShaderSource[SHADER_SOURCE_MAX_LEN];
+    
+    if (!readShaderSource("src/shaders/basic-vertex.glsl", vertexShaderSource)) {
+        printf("failed to read vertex shader source\n");           
+    }
+    if (!readShaderSource("src/shaders/basic-fragment.glsl", fragmentShaderSource)) {
+        printf("failed to read fragment shader source\n");
+    }
+
+    compileShader(&vertexShader, GL_VERTEX_SHADER, vertexShaderSource);
+    compileShader(&fragShader, GL_FRAGMENT_SHADER, fragmentShaderSource);
 
     // link shaders
     unsigned int shaderProgram = linkShaders(vertexShader, fragShader);
