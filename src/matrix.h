@@ -26,3 +26,6 @@ void rotate_matrix_4f_x(matrix4f *mat, float radians);
 void rotate_matrix_4f_y(matrix4f *mat, float radians);
 void rotate_matrix_4f_z(matrix4f *mat, float radians);
 void scale_matrix_4f(matrix4f *mat, float x, float y, float z);
+
+void ortho_4f(matrix4f *mat, float left, float right, float top, float bottom, float near, float far);
+void persp_4f(matrix4f *mat, float h_fov, float aspect, float near, float far);

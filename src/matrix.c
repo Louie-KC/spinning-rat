@@ -160,6 +160,27 @@ void scale_matrix_4f(matrix4f *mat, float x, float y, float z) {
 
     multiply_matrix_4f(mat, &r);
 }
+
+void ortho_4f(matrix4f *mat, float left, float right, float top, float bottom, float near, float far) {
+    mat->data[0]  = 2.0f/(right - left);
+    mat->data[5]  = 2.0f/(top - bottom);
+    mat->data[10] = 2.0f/(far - near);
+    mat->data[12] = -((right + left)/(right - left));
+    mat->data[13] = -((top + bottom)/(top - bottom));
+    mat->data[14] = -((far + near)/(far - near));
+}
+
+void persp_4f(matrix4f *mat, float fov_y, float aspect, float near, float far) {
+    float h = tanf(fov_y * 0.5f);
+    
+    mat->data[0]  = (1.0f / h) / aspect;
+    mat->data[5]  =  1.0f / h;
+    mat->data[10] = (near + far) * (1.0f / (near - far)); 
+    mat->data[11] = -1;
+    mat->data[14] = 2.0f * near * far * (1.0f / near - far);
+
+    mat->data[15] = 0.0f;
+}
 /*
 int main(void) {
     printf("mat3 printing\n");

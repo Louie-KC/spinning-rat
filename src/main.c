@@ -14,6 +14,9 @@
 #define INFO_BUFFER_SIZE 512
 #define SHADER_SOURCE_MAX_LEN 4096
 
+int screen_width = 640;
+int screen_height = 480;
+
 int readShaderSource(const char* path, char *dest) {
     FILE *f;
     int success = 0;
@@ -68,6 +71,8 @@ unsigned int linkShaders(unsigned int vertexShader, unsigned int fragmentShader)
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+    screen_width = width;
+    screen_height = height;
     glViewport(0, 0, width, height);
 }
 
@@ -86,7 +91,7 @@ int main(void) {
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-    window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Hello World", NULL, NULL);
+    window = glfwCreateWindow(screen_width, screen_height, "Hello World", NULL, NULL);
     if (!window) {
         printf("glfwCreateWindow failure\n");
         glfwTerminate();
@@ -137,14 +142,13 @@ int main(void) {
         0, 2, 3
     };
 
-    // transform setup
-    matrix4f transform;
-    set_identity_4f(&transform);
-    translate_matrix_4f(&transform, 0.25f, 0.25f, 0.0f);
+    // Square transform setup
+    matrix4f square_model;
+    set_identity_4f(&square_model);
+    // translate_matrix_4f(&square_transform, 0.25f, 0.25f, 0.0f);
 
-    int transform_loc = glGetUniformLocation(shaderProgram, "transform");
-    glUniformMatrix4fv(transform_loc, 1, GL_TRUE, (GLfloat *) &transform.data);
-    printf("%d\n", transform_loc);
+    int square_model_loc = glGetUniformLocation(shaderProgram, "model");
+    glUniformMatrix4fv(square_model_loc, 1, GL_TRUE, (GLfloat *) &square_model.data);
 
     // buffers
     unsigned int VBO, VAO, EBO;
@@ -165,22 +169,48 @@ int main(void) {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     
+    // Cameras
+    matrix4f view;
+    set_identity_4f(&view);
+    translate_matrix_4f(&view, 0.0f, 0.0f, -1.0f);
+
+    matrix4f proj;
+    set_identity_4f(&proj);
+    //ortho_4f(&proj, 0.0f, (float) screen_width, 0.0f, (float) screen_height, 0.1f, 10.0f);
+    persp_4f(&proj, degrees_to_radians(1.0f), (float) screen_width / (float) screen_height, 0.1f, 100.0f);
+    
+    int view_loc = glGetUniformLocation(shaderProgram, "view");
+    // printf("view_loc: %d\n", view_loc);
+    glUniformMatrix4fv(view_loc, 1, GL_TRUE, (GLfloat *) &view.data);
+    
+    int proj_loc = glGetUniformLocation(shaderProgram, "projection");
+    // printf("proj_loc: %d\n", proj_loc);
+    glUniformMatrix4fv(proj_loc, 1, GL_TRUE, (GLfloat *) &proj.data);
+
     // Render
     while (!glfwWindowShouldClose(window)) {
+        glClearColor(0.2f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
         glUseProgram(shaderProgram);
         
         // transform - spin the square
-        rotate_matrix_4f_z(&transform, degrees_to_radians(1.0f));
-        transform_loc = glGetUniformLocation(shaderProgram, "transform");
-        glUniformMatrix4fv(transform_loc, 1, GL_TRUE, (GLfloat *) &transform.data);
+        //rotate_matrix_4f_y(&square_model, degrees_to_radians(1.0f));
+        square_model_loc = glGetUniformLocation(shaderProgram, "model");
+        glUniformMatrix4fv(square_model_loc, 1, GL_TRUE, (GLfloat *) &square_model.data);
+
+        // rotate_matrix_4f_y(&view, degrees_to_radians(1.0f));
+        view_loc = glGetUniformLocation(shaderProgram, "view");
+        glUniformMatrix4fv(view_loc, 1, GL_TRUE, (GLfloat *) &view.data);
+
+        proj_loc = glGetUniformLocation(shaderProgram, "projection");
+        glUniformMatrix4fv(proj_loc, 1, GL_TRUE, (GLfloat *) &proj.data);
 
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-//        glDrawArrays(GL_TRIANGLES, 0, 3);
+        // glDrawArrays(GL_TRIANGLES, 0, 3);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
