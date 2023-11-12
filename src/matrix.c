@@ -4,6 +4,10 @@
 
 #define _USE_MATH_DEFINES
 
+float degrees_to_radians(float degrees) {
+    return degrees * (M_PI/180);
+}
+
 void set_identity_nf(float data[], int n) {
     unsigned short i = 0;
     unsigned short row = 0;
@@ -21,10 +25,7 @@ void set_identity_nf(float data[], int n) {
 }
 
 void multiply_matrix_nf(float *dest, float *with, int n) {
-    // float *result;  // issue here, pointer to unknown
-
     float result[n * n];
-    set_identity_nf(result, n);
 
     for (int i = 0; i < n; i++) {
         for (int j = 0; j < n; j++) {
@@ -88,10 +89,6 @@ void scale_matrix_3f(matrix3f *mat, float x, float y) {
     multiply_matrix_3f(mat, &s);
 }
 
-float degrees_to_radians(float degrees) {
-    return degrees * (M_PI/180);
-}
-
 void transform_matrix_3f(matrix3f *mat, float x, float y, float r_degrees, float sx, float sy) {
     translate_matrix_3f(mat, x, y);
     rotate_matrix_3f(mat, degrees_to_radians(r_degrees));
@@ -123,12 +120,6 @@ void rotate_matrix_4f_x(matrix4f *mat, float radians) {
     float s = (float) sin((double) radians);
     float c = (float) cos((double) radians);
 
-    // matrix4f r;
-    // set_identity_4f(&r);
-    // r.data[5] = c;
-    // r.data[6] = -s;
-    // r.data[9] = s;
-    // r.data[10] = c;
     matrix4f r = {{1.0f, 0.0f, 0.0f, 0.0f,
                    0.0f,    c,   -s, 0.0f,
                    0.0f,    s,    c, 0.0f,
@@ -137,17 +128,10 @@ void rotate_matrix_4f_x(matrix4f *mat, float radians) {
     multiply_matrix_4f(mat, &r);
 }
 
-// TODO: remove identity setting. Set temp mat directly to correct mat values.
 void rotate_matrix_4f_y(matrix4f *mat, float radians) {
     float s = (float) sin((double) radians);
     float c = (float) cos((double) radians);
 
-    // matrix4f r;
-    // set_identity_4f(&r);
-    // r.data[0] = c;
-    // r.data[2] = s;
-    // r.data[8] = -s;
-    // r.data[10] = c;
     matrix4f r = {{   c, 0.0f,    s, 0.0f,
                    0.0f, 1.0f, 0.0f, 0.0f,
                      -s, 0.0f,    c, 0.0f,
@@ -160,26 +144,22 @@ void rotate_matrix_4f_z(matrix4f *mat, float radians) {
     float s = (float) sin((double) radians);
     float c = (float) cos((double) radians);
 
-    matrix4f r;
-    set_identity_4f(&r);
-    r.data[0] = c;
-    r.data[1] = -s;
-    r.data[4] = s;
-    r.data[5] = c;
-
+    matrix4f r = {{   c,   -s, 0.0f, 0.0f,
+                      s,    c, 0.0f, 0.0f,
+                   0.0f, 0.0f, 1.0f, 0.0f,
+                   0.0f, 0.0f, 0.0f, 1.0f}};
+    
     multiply_matrix_4f(mat, &r);
 }
 
 void scale_matrix_4f(matrix4f *mat, float x, float y, float z) {
-    matrix4f r;
-    set_identity_4f(&r);
-    r.data[0] = x;
-    r.data[5] = y;
-    r.data[10] = z;
+    matrix4f r = {{   x, 0.0f, 0.0f, 0.0f,
+                   0.0f,    y, 0.0f, 0.0f,
+                   0.0f, 0.0f,    z, 0.0f,
+                   0.0f, 0.0f, 0.0f, 1.0f}};
 
     multiply_matrix_4f(mat, &r);
 }
-
 /*
 int main(void) {
     printf("mat3 printing\n");
