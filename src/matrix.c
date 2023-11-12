@@ -8,7 +8,7 @@ float degrees_to_radians(float degrees) {
     return degrees * (M_PI/180);
 }
 
-void set_identity_nf(float data[], int n) {
+void set_identity_n(float data[], int n) {
     unsigned short i = 0;
     unsigned short row = 0;
     unsigned short max_idx = n * n;
@@ -24,7 +24,14 @@ void set_identity_nf(float data[], int n) {
     }
 }
 
-void multiply_matrix_nf(float *dest, float *with, int n) {
+void set_zero_n(float data[], int n) {
+    unsigned int max_idx = n * n;
+    for (unsigned int i = 0; i < max_idx; ++i) {
+        data[i] = 0;
+    }
+}
+
+void multiply_matrix_n(float *dest, float *with, int n) {
     float result[n * n];
 
     for (int i = 0; i < n; i++) {
@@ -46,10 +53,6 @@ void multiply_matrix_nf(float *dest, float *with, int n) {
     }
 }
 
-void set_identity_3f(matrix3f *mat) {
-    set_identity_nf(mat->data, 3);
-}
-
 void print_matrix_n(float data[], int n) {
     unsigned short i = 0;
     unsigned short max_idx = n * n;
@@ -62,106 +65,124 @@ void print_matrix_n(float data[], int n) {
     }
 }
 
-void print_matrix_3f(matrix3f *mat) {
+// 3x3 Matrix
+
+void mat3_set_identity(mat3 *mat) {
+    set_identity_n(mat->data, 3);
+}
+
+void mat3_set_zero(mat3 *mat) {
+    set_zero_n(mat->data, 3);
+}
+
+void mat3_print(mat3 *mat) {
     print_matrix_n(mat->data, 3);
 }
 
-void translate_matrix_3f(matrix3f *mat, float x, float y) {
-    matrix3f t = {{1.0f, 0.0f, x, 0.0f, 1.0f, y, 0.0f, 0.0f, 1.0f}};
-    multiply_matrix_3f(mat, &t);
+void mat3_multiply(mat3 *dest, mat3 *with) {
+    multiply_matrix_n(dest->data, with->data, 3);
 }
 
-void multiply_matrix_3f(matrix3f *dest, matrix3f *with) {
-    multiply_matrix_nf(dest->data, with->data, 3);
+void mat3_translate(mat3 *mat, float x, float y) {
+    mat3 t = {{1.0f, 0.0f, x, 0.0f, 1.0f, y, 0.0f, 0.0f, 1.0f}};
+    mat3_multiply(mat, &t);
 }
 
-void rotate_matrix_3f(matrix3f *mat, float radians) {
+void mat3_rotate(mat3 *mat, float radians) {
     float s = (float) sin((double) radians);
     float c = (float) cos((double) radians);
 
-    matrix3f r = {{c, s, 0.0f, -s, c, 0.0f, 0.0f, 0.0f, 1.0f}};
+    mat3 r = {{c, s, 0.0f, -s, c, 0.0f, 0.0f, 0.0f, 1.0f}};
 
-    multiply_matrix_3f(mat, &r);
+    mat3_multiply(mat, &r);
 }
 
-void scale_matrix_3f(matrix3f *mat, float x, float y) {
-    matrix3f s = {{x, 0.0f, 0.0f, 0.0f, y, 0.0f, 0.0f, 0.0f, 1.0f}};    
-    multiply_matrix_3f(mat, &s);
+void mat3_scale(mat3 *mat, float x, float y) {
+    mat3 s = {{x, 0.0f, 0.0f, 0.0f, y, 0.0f, 0.0f, 0.0f, 1.0f}};    
+    mat3_multiply(mat, &s);
 }
 
-void transform_matrix_3f(matrix3f *mat, float x, float y, float r_degrees, float sx, float sy) {
-    translate_matrix_3f(mat, x, y);
-    rotate_matrix_3f(mat, degrees_to_radians(r_degrees));
-    scale_matrix_3f(mat, sx, sy);
+void mat3_transform(mat3 *mat, float x, float y, float radians, float sx, float sy) {
+    mat3_translate(mat, x, y);
+    mat3_rotate(mat, radians);
+    mat3_scale(mat, sx, sy);
 }
 
-void set_identity_4f(matrix4f *mat) {
-    set_identity_nf(mat->data, 4);
+// 4x4 Matrix
+
+void mat4_set_identity(mat4 *mat) {
+    set_identity_n(mat->data, 4);
 }
 
-void print_matrix_4f(matrix4f *mat) {
+void mat4_set_zero(mat4 *mat) {
+    set_zero_n(mat->data, 4);
+}
+
+void mat4_print(mat4 *mat) {
     print_matrix_n(mat->data, 4);
 }
 
-void translate_matrix_4f(matrix4f *mat, float x, float y, float z) {
-    matrix4f t = {{1.0f, 0.0f, 0.0f, x,
-                   0.0f, 1.0f, 0.0f, y,
-                   0.0f, 0.0f, 1.0f, z,
-                   0.0f, 0.0f, 0.0f, 1.0f}};
-
-    multiply_matrix_4f(mat, &t);
+void mat4_multiply(mat4 *dest, mat4 *with) {
+    multiply_matrix_n(dest->data, with->data, 4);
 }
 
-void multiply_matrix_4f(matrix4f *dest, matrix4f *with) {
-    multiply_matrix_nf(dest->data, with->data, 4);
+void mat4_translate(mat4 *mat, float x, float y, float z) {
+    mat4 t = {{1.0f, 0.0f, 0.0f, x,
+               0.0f, 1.0f, 0.0f, y,
+               0.0f, 0.0f, 1.0f, z,
+               0.0f, 0.0f, 0.0f, 1.0f}};
+
+    mat4_multiply(mat, &t);
 }
 
-void rotate_matrix_4f_x(matrix4f *mat, float radians) {
+void mat4_rotate_x(mat4 *mat, float radians) {
     float s = (float) sin((double) radians);
     float c = (float) cos((double) radians);
 
-    matrix4f r = {{1.0f, 0.0f, 0.0f, 0.0f,
-                   0.0f,    c,   -s, 0.0f,
-                   0.0f,    s,    c, 0.0f,
-                   0.0f, 0.0f, 0.0f, 1.0f}};
+    mat4 r = {{1.0f, 0.0f, 0.0f, 0.0f,
+               0.0f,    c,   -s, 0.0f,
+               0.0f,    s,    c, 0.0f,
+               0.0f, 0.0f, 0.0f, 1.0f}};
 
-    multiply_matrix_4f(mat, &r);
+    mat4_multiply(mat, &r);
 }
 
-void rotate_matrix_4f_y(matrix4f *mat, float radians) {
+void mat4_rotate_y(mat4 *mat, float radians) {
     float s = (float) sin((double) radians);
     float c = (float) cos((double) radians);
 
-    matrix4f r = {{   c, 0.0f,    s, 0.0f,
-                   0.0f, 1.0f, 0.0f, 0.0f,
-                     -s, 0.0f,    c, 0.0f,
-                   0.0f, 0.0f, 0.0f, 1.0f}};
+    mat4 r = {{   c, 0.0f,    s, 0.0f,
+               0.0f, 1.0f, 0.0f, 0.0f,
+                 -s, 0.0f,    c, 0.0f,
+               0.0f, 0.0f, 0.0f, 1.0f}};
 
-    multiply_matrix_4f(mat, &r);
+    mat4_multiply(mat, &r);
 }
 
-void rotate_matrix_4f_z(matrix4f *mat, float radians) {
+void mat4_rotate_z(mat4 *mat, float radians) {
     float s = (float) sin((double) radians);
     float c = (float) cos((double) radians);
 
-    matrix4f r = {{   c,   -s, 0.0f, 0.0f,
-                      s,    c, 0.0f, 0.0f,
-                   0.0f, 0.0f, 1.0f, 0.0f,
-                   0.0f, 0.0f, 0.0f, 1.0f}};
+    mat4 r = {{   c,   -s, 0.0f, 0.0f,
+                  s,    c, 0.0f, 0.0f,
+               0.0f, 0.0f, 1.0f, 0.0f,
+               0.0f, 0.0f, 0.0f, 1.0f}};
     
-    multiply_matrix_4f(mat, &r);
+    mat4_multiply(mat, &r);
 }
 
-void scale_matrix_4f(matrix4f *mat, float x, float y, float z) {
-    matrix4f r = {{   x, 0.0f, 0.0f, 0.0f,
-                   0.0f,    y, 0.0f, 0.0f,
-                   0.0f, 0.0f,    z, 0.0f,
-                   0.0f, 0.0f, 0.0f, 1.0f}};
+void mat4_scale(mat4 *mat, float x, float y, float z) {
+    mat4 r = {{   x, 0.0f, 0.0f, 0.0f,
+               0.0f,    y, 0.0f, 0.0f,
+               0.0f, 0.0f,    z, 0.0f,
+               0.0f, 0.0f, 0.0f, 1.0f}};
 
-    multiply_matrix_4f(mat, &r);
+    mat4_multiply(mat, &r);
 }
 
-void ortho_4f(matrix4f *mat, float left, float right, float top, float bottom, float near, float far) {
+// Camera
+
+void camera_ortho(mat4 *mat, float left, float right, float top, float bottom, float near, float far) {
     mat->data[0]  = 2.0f/(right - left);
     mat->data[5]  = 2.0f/(top - bottom);
     mat->data[10] = 2.0f/(far - near);
@@ -170,7 +191,7 @@ void ortho_4f(matrix4f *mat, float left, float right, float top, float bottom, f
     mat->data[14] = -((far + near)/(far - near));
 }
 
-void persp_4f(matrix4f *mat, float fov_y, float aspect, float near, float far) {
+void camera_persp(mat4 *mat, float fov_y, float aspect, float near, float far) {
     float h = tanf(fov_y * 0.5f);
     
     mat->data[0]  = (1.0f / h) / aspect;
@@ -181,6 +202,7 @@ void persp_4f(matrix4f *mat, float fov_y, float aspect, float near, float far) {
 
     mat->data[15] = 0.0f;
 }
+
 /*
 int main(void) {
     printf("mat3 printing\n");

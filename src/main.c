@@ -143,9 +143,9 @@ int main(void) {
     };
 
     // Square transform setup
-    matrix4f square_model;
-    set_identity_4f(&square_model);
-    // translate_matrix_4f(&square_transform, 0.25f, 0.25f, 0.0f);
+    mat4 square_model;
+    mat4_set_identity(&square_model);
+    // mat4_translate(&square_model, 0.25f, 0.25f, 0.0f);
 
     int square_model_loc = glGetUniformLocation(shaderProgram, "model");
     glUniformMatrix4fv(square_model_loc, 1, GL_TRUE, (GLfloat *) &square_model.data);
@@ -172,14 +172,14 @@ int main(void) {
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     
     // Cameras
-    matrix4f view;
-    set_identity_4f(&view);
-    translate_matrix_4f(&view, 0.0f, 0.0f, -1.0f);
+    mat4 view;
+    mat4_set_identity(&view);
+    mat4_translate(&view, 0.0f, 0.0f, -1.0f);
 
-    matrix4f proj;
-    set_identity_4f(&proj);
-    //ortho_4f(&proj, 0.0f, (float) screen_width, 0.0f, (float) screen_height, 0.1f, 10.0f);
-    persp_4f(&proj, degrees_to_radians(1.0f), (float) screen_width / (float) screen_height, 0.1f, 100.0f);
+    mat4 proj;
+    mat4_set_identity(&proj);
+    // camera_ortho(&proj, 0.0f, (float) screen_width, 0.0f, (float) screen_height, 0.1f, 10.0f);
+    camera_persp(&proj, degrees_to_radians(1.0f), (float) screen_width / (float) screen_height, 0.1f, 100.0f);
     
     int view_loc = glGetUniformLocation(shaderProgram, "view");
     // printf("view_loc: %d\n", view_loc);
@@ -197,11 +197,11 @@ int main(void) {
         glUseProgram(shaderProgram);
         
         // transform - spin the square
-        //rotate_matrix_4f_y(&square_model, degrees_to_radians(1.0f));
+        // mat4_rotate_y(&square_model, degrees_to_radians(1.0f));
         square_model_loc = glGetUniformLocation(shaderProgram, "model");
         glUniformMatrix4fv(square_model_loc, 1, GL_TRUE, (GLfloat *) &square_model.data);
 
-        // rotate_matrix_4f_y(&view, degrees_to_radians(1.0f));
+        // mat4_rotate_y(&view, degrees_to_radians(1.0f));
         view_loc = glGetUniformLocation(shaderProgram, "view");
         glUniformMatrix4fv(view_loc, 1, GL_TRUE, (GLfloat *) &view.data);
 

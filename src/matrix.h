@@ -1,31 +1,36 @@
 typedef struct matrix3f {
     float data[9];
-} matrix3f;
+} mat3;
 
 typedef struct matrix4f {
     float data[16];
-} matrix4f;
+} mat4;
 
 float degrees_to_radians(float degrees);
 
-void set_identity_nf(float data[], int n);
-void set_identity_3f(matrix3f *mat);
+void set_identity_n(float data[], int n);
+void set_zero_n(float data[], int n);
+void multiply_matrix_n(float *dest, float *with, int n);
 void print_matrix_n(float data[], int n);
-void print_matrix_3f(matrix3f *mat);
-void translate_matrix_3f(matrix3f *mat, float x, float y);
-void multiply_matrix_3f(matrix3f *dest, matrix3f *with);
-void rotate_matrix_3f(matrix3f *mat, float radians);
-void scale_matrix_3f(matrix3f *mat, float x, float y);
-void transform_matrix_3f(matrix3f *mat, float x, float y, float r_degrees, float sx, float sy);
 
-void set_identity_4f(matrix4f *mat);
-void print_matrix_4f(matrix4f *mat);
-void translate_matrix_4f(matrix4f *mat, float x, float y, float z);
-void multiply_matrix_4f(matrix4f *dest, matrix4f *with);
-void rotate_matrix_4f_x(matrix4f *mat, float radians);
-void rotate_matrix_4f_y(matrix4f *mat, float radians);
-void rotate_matrix_4f_z(matrix4f *mat, float radians);
-void scale_matrix_4f(matrix4f *mat, float x, float y, float z);
+void mat3_set_identity(mat3 *mat);
+void mat3_set_zero(mat3 *mat);
+void mat3_print(mat3 *mat);
+void mat3_multiply(mat3 *dest, mat3 *with);
+void mat3_translate(mat3 *mat, float x, float y);
+void mat3_rotate(mat3 *mat, float radians);
+void mat3_scale(mat3 *mat, float x, float y);
+void mat3_transform(mat3 *mat, float x, float y, float radians, float sx, float sy);
 
-void ortho_4f(matrix4f *mat, float left, float right, float top, float bottom, float near, float far);
-void persp_4f(matrix4f *mat, float h_fov, float aspect, float near, float far);
+void mat4_set_identity(mat4 *mat);
+void mat4_set_zero(mat4 *mat);
+void mat4_print(mat4 *mat);
+void mat4_multiply(mat4 *dest, mat4 *with);
+void mat4_translate(mat4 *mat, float x, float y, float z);
+void mat4_rotate_x(mat4 *mat, float radians);
+void mat4_rotate_y(mat4 *mat, float radians);
+void mat4_rotate_z(mat4 *mat, float radians);
+void mat4_scale(mat4 *mat, float x, float y, float z);
+
+void camera_ortho(mat4 *mat, float left, float right, float top, float bottom, float near, float far);
+void camera_persp(mat4 *mat, float h_fov, float aspect, float near, float far);
