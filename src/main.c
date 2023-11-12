@@ -6,6 +6,8 @@
 #endif
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include "matrix.c"
+#include "vector.c"
 
 #define SCREEN_WIDTH 640
 #define SCREEN_HEIGHT 480
@@ -123,15 +125,26 @@ int main(void) {
     glDeleteShader(vertexShader);
     glDeleteShader(fragShader);
 
-    // Hello triangle
+    // Square
     float vertices[] = {
-        -0.5f, -0.5f, 0.0f,
-         0.5f, -0.5f, 0.0f,
-         0.0f,  0.5f, 0.0f
+        0.5f,  0.5f, 0.0f,
+        0.5f, -0.5f, 0.0f,
+       -0.5f, -0.5f, 0.0f,
+       -0.5f,  0.5f, 0.0f,
     };
     unsigned int indices[] = {
         0, 1, 2,
+        0, 2, 3
     };
+
+    // transform setup
+    matrix4f transform;
+    set_identity_4f(&transform);
+    translate_matrix_4f(&transform, 0.25f, 0.25f, 0.0f);
+
+    int transform_loc = glGetUniformLocation(shaderProgram, "transform");
+    glUniformMatrix4fv(transform_loc, 1, GL_TRUE, (GLfloat *) &transform.data);
+    printf("%d\n", transform_loc);
 
     // buffers
     unsigned int VBO, VAO, EBO;
@@ -152,13 +165,19 @@ int main(void) {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
-//    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     
     // Render
     while (!glfwWindowShouldClose(window)) {
         glClear(GL_COLOR_BUFFER_BIT);
 
         glUseProgram(shaderProgram);
+        
+        // transform - spin the square
+        rotate_matrix_4f_z(&transform, degrees_to_radians(1.0f));
+        transform_loc = glGetUniformLocation(shaderProgram, "transform");
+        glUniformMatrix4fv(transform_loc, 1, GL_TRUE, (GLfloat *) &transform.data);
+
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 //        glDrawArrays(GL_TRIANGLES, 0, 3);
