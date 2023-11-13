@@ -9,8 +9,6 @@
 #include "matrix.c"
 #include "vector.c"
 
-#define SCREEN_WIDTH 640
-#define SCREEN_HEIGHT 480
 #define INFO_BUFFER_SIZE 512
 #define SHADER_SOURCE_MAX_LEN 4096
 
@@ -132,10 +130,10 @@ int main(void) {
 
     // Square
     float vertices[] = {
-        0.5f,  0.5f, 0.0f,
-        0.5f, -0.5f, 0.0f,
-       -0.5f, -0.5f, 0.0f,
-       -0.5f,  0.5f, 0.0f,
+        1.0f,  1.0f, 0.0f,
+        1.0f, -1.0f, 0.0f,
+       -1.0f, -1.0f, 0.0f,
+       -1.0f,  1.0f, 0.0f
     };
     unsigned int indices[] = {
         0, 1, 2,
@@ -145,7 +143,10 @@ int main(void) {
     // Square transform setup
     mat4 square_model;
     mat4_set_identity(&square_model);
+    mat4_scale(&square_model, 0.5f, 0.5f, 0.5f);
     // mat4_translate(&square_model, 0.25f, 0.25f, 0.0f);
+    // mat4_rotate_x(&square_model, degrees_to_radians(-45.0f));
+    // mat4_rotate_z(&square_model, degrees_to_radians(-45.0f));
 
     int square_model_loc = glGetUniformLocation(shaderProgram, "model");
     glUniformMatrix4fv(square_model_loc, 1, GL_TRUE, (GLfloat *) &square_model.data);
@@ -174,12 +175,11 @@ int main(void) {
     // Cameras
     mat4 view;
     mat4_set_identity(&view);
-    mat4_translate(&view, 0.0f, 0.0f, -1.0f);
+    mat4_translate(&view, 0.0f, 0.0f, -10.0f);
 
     mat4 proj;
-    mat4_set_identity(&proj);
-    // camera_ortho(&proj, 0.0f, (float) screen_width, 0.0f, (float) screen_height, 0.1f, 10.0f);
-    camera_persp(&proj, degrees_to_radians(1.0f), (float) screen_width / (float) screen_height, 0.1f, 100.0f);
+    mat4_set_zero(&proj);
+    camera_persp(&proj, degrees_to_radians(90.0f), (float) screen_width / (float) screen_height, 0.1f, 100.0f);
     
     int view_loc = glGetUniformLocation(shaderProgram, "view");
     // printf("view_loc: %d\n", view_loc);
@@ -201,8 +201,9 @@ int main(void) {
         square_model_loc = glGetUniformLocation(shaderProgram, "model");
         glUniformMatrix4fv(square_model_loc, 1, GL_TRUE, (GLfloat *) &square_model.data);
 
-        // mat4_rotate_y(&view, degrees_to_radians(1.0f));
         view_loc = glGetUniformLocation(shaderProgram, "view");
+        mat4_translate(&view, 0.0f, 0.0f, -0.1f);
+        mat4_print(&view);
         glUniformMatrix4fv(view_loc, 1, GL_TRUE, (GLfloat *) &view.data);
 
         proj_loc = glGetUniformLocation(shaderProgram, "projection");
