@@ -12,6 +12,8 @@
 #define INFO_BUFFER_SIZE 512
 #define SHADER_SOURCE_MAX_LEN 4096
 
+#define ROTATION_DEGREES_PER_SEC 90.0f
+
 int screen_width = 640;
 int screen_height = 480;
 
@@ -137,19 +139,16 @@ int main(void) {
         1.0f,  1.0f, 0.0f,
         1.0f, -1.0f, 0.0f,
        -1.0f, -1.0f, 0.0f,
-       -1.0f,  1.0f, 0.0f
+       -1.0f,  1.0f, 0.0f,
     };
     unsigned int indices[] = {
         0, 1, 2,
-        0, 2, 3
+        0, 2, 3,
     };
 
     // Square transform setup
     mat4 square_model = mat4_identity();
     mat4_scale(&square_model, 0.5f, 0.5f, 0.5f);
-    // mat4_translate(&square_model, 0.25f, 0.25f, 0.0f);
-    // mat4_rotate_x(&square_model, degrees_to_radians(-45.0f));
-    // mat4_rotate_z(&square_model, degrees_to_radians(-45.0f));
 
     int square_model_loc = glGetUniformLocation(shaderProgram, "model");
     glUniformMatrix4fv(square_model_loc, 1, GL_TRUE, (GLfloat *) &square_model.data);
@@ -188,32 +187,41 @@ int main(void) {
     int proj_loc = glGetUniformLocation(shaderProgram, "projection");
     glUniformMatrix4fv(proj_loc, 1, GL_TRUE, (GLfloat *) &projection_matrix.data);
 
+    // Time
+    double last_frame = glfwGetTime();
+    double frame_time = 0.0;
+
     // Render
     while (!glfwWindowShouldClose(window)) {
         glClearColor(0.2f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
         glUseProgram(shaderProgram);
-        
+
+        // Update matrices        
         // transform - spin the square
-        // mat4_rotate_y(&square_model, degrees_to_radians(1.0f));
+        mat4_rotate_y(&square_model, degrees_to_radians(ROTATION_DEGREES_PER_SEC * frame_time));
         square_model_loc = glGetUniformLocation(shaderProgram, "model");
         glUniformMatrix4fv(square_model_loc, 1, GL_TRUE, (GLfloat *) &square_model.data);
 
         view_loc = glGetUniformLocation(shaderProgram, "view");
-        // mat4_translate(&view, 0.0f, 0.0f, -0.1f);
-        // mat4_print(&view);
         glUniformMatrix4fv(view_loc, 1, GL_TRUE, (GLfloat *) &view.data);
 
         proj_loc = glGetUniformLocation(shaderProgram, "projection");
         glUniformMatrix4fv(proj_loc, 1, GL_TRUE, (GLfloat *) &projection_matrix.data);
 
+        // Draw
         glBindVertexArray(VAO);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, sizeof(indices), GL_UNSIGNED_INT, 0);
         // glDrawArrays(GL_TRIANGLES, 0, 3);
 
+        // Buffer swap and IO
         glfwSwapBuffers(window);
         glfwPollEvents();
+
+        // Time
+        frame_time = glfwGetTime() - last_frame;
+        last_frame = glfwGetTime();
     }
 
     glDeleteVertexArrays(1, &VAO);
