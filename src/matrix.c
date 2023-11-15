@@ -192,11 +192,13 @@ void camera_ortho(mat4 *mat, float left, float right, float top, float bottom, f
 }
 
 void camera_persp(mat4 *mat, float fov_y, float aspect, float near, float far) {
-    float scale = 1 / tan(fov_y * 0.5 * M_PI / 180);
-    mat->data[0]  = scale;
-    mat->data[5]  = scale;
-    mat->data[10] = -(far/(far - near));
-    mat->data[11] = -((far * near)/(far - near));
+    float h = 2.0f * near * tanf(fov_y/2);
+    float w = aspect * h;
+
+    mat->data[0]  = (2.0f * near) / w;
+    mat->data[5]  = (2.0f * near) / h;
+    mat->data[10] = -((far + near) / (far - near));
+    mat->data[11] = -((2 * far * near)/(far - near));
     mat->data[14] = -1.0f;
     mat->data[15] = 0.0f;
 }
