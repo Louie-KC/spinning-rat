@@ -15,6 +15,9 @@
 int screen_width = 640;
 int screen_height = 480;
 
+// Camera
+mat4 projection_matrix;
+
 int readShaderSource(const char* path, char *dest) {
     FILE *f;
     int success = 0;
@@ -71,6 +74,7 @@ unsigned int linkShaders(unsigned int vertexShader, unsigned int fragmentShader)
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     screen_width = width;
     screen_height = height;
+    camera_persp(&projection_matrix, degrees_to_radians(45.0f), (float) screen_width / (float) screen_height, 0.1f, 100.0f);
     glViewport(0, 0, width, height);
 }
 
@@ -141,8 +145,7 @@ int main(void) {
     };
 
     // Square transform setup
-    mat4 square_model;
-    mat4_set_identity(&square_model);
+    mat4 square_model = mat4_identity();
     mat4_scale(&square_model, 0.5f, 0.5f, 0.5f);
     // mat4_translate(&square_model, 0.25f, 0.25f, 0.0f);
     // mat4_rotate_x(&square_model, degrees_to_radians(-45.0f));
@@ -170,24 +173,20 @@ int main(void) {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
-    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     
     // Cameras
-    mat4 view;
-    mat4_set_identity(&view);
-    mat4_translate(&view, 0.0f, 0.0f, -10.0f);
+    mat4 view = mat4_identity();
+    mat4_translate(&view, 0.0f, 0.0f, -3.0f);
 
-    mat4 proj;
-    mat4_set_zero(&proj);
-    camera_persp(&proj, degrees_to_radians(90.0f), (float) screen_width / (float) screen_height, 0.1f, 100.0f);
+    projection_matrix = mat4_zero();
+    camera_persp(&projection_matrix, degrees_to_radians(45.0f), (float) screen_width / (float) screen_height, 0.1f, 100.0f);
     
     int view_loc = glGetUniformLocation(shaderProgram, "view");
-    // printf("view_loc: %d\n", view_loc);
     glUniformMatrix4fv(view_loc, 1, GL_TRUE, (GLfloat *) &view.data);
     
     int proj_loc = glGetUniformLocation(shaderProgram, "projection");
-    // printf("proj_loc: %d\n", proj_loc);
-    glUniformMatrix4fv(proj_loc, 1, GL_TRUE, (GLfloat *) &proj.data);
+    glUniformMatrix4fv(proj_loc, 1, GL_TRUE, (GLfloat *) &projection_matrix.data);
 
     // Render
     while (!glfwWindowShouldClose(window)) {
@@ -202,12 +201,12 @@ int main(void) {
         glUniformMatrix4fv(square_model_loc, 1, GL_TRUE, (GLfloat *) &square_model.data);
 
         view_loc = glGetUniformLocation(shaderProgram, "view");
-        mat4_translate(&view, 0.0f, 0.0f, -0.1f);
-        mat4_print(&view);
+        // mat4_translate(&view, 0.0f, 0.0f, -0.1f);
+        // mat4_print(&view);
         glUniformMatrix4fv(view_loc, 1, GL_TRUE, (GLfloat *) &view.data);
 
         proj_loc = glGetUniformLocation(shaderProgram, "projection");
-        glUniformMatrix4fv(proj_loc, 1, GL_TRUE, (GLfloat *) &proj.data);
+        glUniformMatrix4fv(proj_loc, 1, GL_TRUE, (GLfloat *) &projection_matrix.data);
 
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);

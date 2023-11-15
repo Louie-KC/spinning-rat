@@ -67,6 +67,18 @@ void print_matrix_n(float data[], int n) {
 
 // 3x3 Matrix
 
+mat3 mat3_identity() {
+    mat3 result;
+    mat3_set_identity(&result);
+    return result;
+}
+
+mat3 mat3_zero() {
+    mat3 result;
+    mat3_set_zero(&result);
+    return result;
+}
+
 void mat3_set_identity(mat3 *mat) {
     set_identity_n(mat->data, 3);
 }
@@ -109,6 +121,18 @@ void mat3_transform(mat3 *mat, float x, float y, float radians, float sx, float 
 }
 
 // 4x4 Matrix
+
+mat4 mat4_identity() {
+    mat4 result;
+    mat4_set_identity(&result);
+    return result;
+}
+
+mat4 mat4_zero() {
+    mat4 result;
+    mat4_set_zero(&result);
+    return result;
+}
 
 void mat4_set_identity(mat4 *mat) {
     set_identity_n(mat->data, 4);
