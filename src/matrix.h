@@ -1,7 +1,9 @@
+#pragma once
 typedef struct matrix3f {
     float data[9];
 } mat3;
 
+#pragma once
 typedef struct matrix4f {
     float data[16];
 } mat4;
@@ -35,6 +37,3 @@ void mat4_rotate_x(mat4 *mat, float radians);
 void mat4_rotate_y(mat4 *mat, float radians);
 void mat4_rotate_z(mat4 *mat, float radians);
 void mat4_scale(mat4 *mat, float x, float y, float z);
-
-void camera_ortho(mat4 *mat, float left, float right, float top, float bottom, float near, float far);
-void camera_persp(mat4 *mat, float h_fov, float aspect, float near, float far);

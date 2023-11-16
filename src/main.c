@@ -6,8 +6,9 @@
 #endif
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include "matrix.c"
-#include "vector.c"
+#include "camera.h"
+#include "matrix.h"
+// #include "vector.c"
 
 #define INFO_BUFFER_SIZE 512
 #define SHADER_SOURCE_MAX_LEN 4096
