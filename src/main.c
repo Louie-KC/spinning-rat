@@ -10,6 +10,8 @@
 #include "matrix.h"
 // #include "vector.c"
 
+#include "util.c"
+
 #define INFO_BUFFER_SIZE 512
 #define SHADER_SOURCE_MAX_LEN 4096
 
@@ -20,29 +22,6 @@ int screen_height = 480;
 
 // Camera
 mat4 projection_matrix;
-
-int readShaderSource(const char* path, char *dest) {
-    FILE *f;
-    int success = 0;
-
-    dest[0] = '\0';
-    f = fopen(path, "r");
-    
-    if (f) {
-        char line[255];
-        unsigned int pos = 0;
-        while (fgets(line, SHADER_SOURCE_MAX_LEN, f) != NULL) {
-            unsigned int lineLen = strlen(line);
-            strcpy(dest + pos, line);
-            pos += lineLen;
-        }
-        fgets(dest, SHADER_SOURCE_MAX_LEN, f);
-        success = 1;
-    }
-
-    fclose(f);
-    return success;
-}
 
 int compileShader(unsigned int* shader, int type, const char *source) {
     int status;
@@ -119,10 +98,10 @@ int main(void) {
     char vertexShaderSource[SHADER_SOURCE_MAX_LEN];
     char fragmentShaderSource[SHADER_SOURCE_MAX_LEN];
     
-    if (!readShaderSource("src/shaders/basic-vertex.glsl", vertexShaderSource)) {
+    if (!read_file_source("src/shaders/basic-vertex.glsl", vertexShaderSource)) {
         printf("failed to read vertex shader source\n");           
     }
-    if (!readShaderSource("src/shaders/basic-fragment.glsl", fragmentShaderSource)) {
+    if (!read_file_source("src/shaders/basic-fragment.glsl", fragmentShaderSource)) {
         printf("failed to read fragment shader source\n");
     }
 
