@@ -114,21 +114,30 @@ int main(void) {
     glDeleteShader(vertexShader);
     glDeleteShader(fragShader);
 
-    // Square
-    float vertices[] = {
-        1.0f,  1.0f, 0.0f,
-        1.0f, -1.0f, 0.0f,
-       -1.0f, -1.0f, 0.0f,
-       -1.0f,  1.0f, 0.0f,
-    };
-    unsigned int indices[] = {
-        0, 1, 2,
-        0, 2, 3,
-    };
+    // Load model: Cube
+    // TODO: Remove below hard coded buffer sizes
+    float vertices[8 * 3];
+    unsigned int indices[36];
+    load_model("models/cube.obj", &vertices, &indices);
+    // printf("\n\n");
+    // for (int i = 0; i < sizeof(vertices); ++i) {
+    //     if (i % 3 == 0) {
+    //         printf("\n");
+    //     }
+    //     printf("%f ", vertices[i]);
+    // }
+    // printf("\n");
+    // for (int i = 0; i < sizeof(indices); ++i) {
+    //     if (i % 3 == 0) {
+    //         printf("\n");
+    //     }
+    //     printf("%d ", indices[i]);
+    // }
+
 
     // Square transform setup
     mat4 square_model = mat4_identity();
-    mat4_scale(&square_model, 0.5f, 0.5f, 0.5f);
+    // mat4_scale(&square_model, 0.5f, 0.5f, 0.5f);
 
     int square_model_loc = glGetUniformLocation(shaderProgram, "model");
     glUniformMatrix4fv(square_model_loc, 1, GL_TRUE, (GLfloat *) &square_model.data);
