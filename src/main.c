@@ -115,25 +115,28 @@ int main(void) {
     glDeleteShader(fragShader);
 
     // Load model: Cube
-    // TODO: Remove below hard coded buffer sizes
-    float vertices[8 * 3];
-    unsigned int indices[36];
-    load_model("models/cube.obj", &vertices, &indices);
+    float *vertices;
+    unsigned int *indices;
+    int n_vertices;
+    int n_indices;
+    load_model("models/cube.obj", &vertices, &indices, &n_vertices, &n_indices);
+
+    // printf("n_vertices: %d\nn_indices: %d\n", n_vertices, n_indices);
     // printf("\n\n");
-    // for (int i = 0; i < sizeof(vertices); ++i) {
+    // for (int i = 0; i < 24; ++i) {
     //     if (i % 3 == 0) {
     //         printf("\n");
     //     }
     //     printf("%f ", vertices[i]);
     // }
     // printf("\n");
-    // for (int i = 0; i < sizeof(indices); ++i) {
-    //     if (i % 3 == 0) {
+    // for (int i = 0; i < 36; ++i) {
+    //     printf("%d ", indices[i]);
+    //     if ((i + 1) % 3 == 0) {
     //         printf("\n");
     //     }
-    //     printf("%d ", indices[i]);
     // }
-
+    // printf("\n");
 
     // Square transform setup
     mat4 square_model = mat4_identity();
@@ -150,10 +153,10 @@ int main(void) {
 
     glBindVertexArray(VAO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices[0]) * n_vertices, vertices, GL_STATIC_DRAW);
     
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices[0]) * n_indices, indices, GL_STATIC_DRAW);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
@@ -201,7 +204,7 @@ int main(void) {
 
         // Draw
         glBindVertexArray(VAO);
-        glDrawElements(GL_TRIANGLES, sizeof(indices), GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, n_indices, GL_UNSIGNED_INT, 0);
         // glDrawArrays(GL_TRIANGLES, 0, 3);
 
         // Buffer swap and IO
@@ -213,10 +216,14 @@ int main(void) {
         last_frame = glfwGetTime();
     }
 
+
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
     glDeleteBuffers(1, &EBO);
     glDeleteProgram(shaderProgram);
+    
+    free(vertices);
+    free(indices);
 
     printf("exiting\n");
     return 0;
