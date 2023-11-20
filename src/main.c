@@ -119,18 +119,19 @@ int main(void) {
     unsigned int *indices;
     int n_vertices;
     int n_indices;
-    load_model("models/cube.obj", &vertices, &indices, &n_vertices, &n_indices);
+    // load_model("models/cube.obj", &vertices, &indices, &n_vertices, &n_indices);
+    load_model("models/roi.obj", &vertices, &indices, &n_vertices, &n_indices);
 
-    // printf("n_vertices: %d\nn_indices: %d\n", n_vertices, n_indices);
+    // printf("n_vertices: %d\nn_indices:  %d\n", n_vertices, n_indices);
     // printf("\n\n");
-    // for (int i = 0; i < 24; ++i) {
+    // for (int i = 0; i < n_vertices; ++i) {
     //     if (i % 3 == 0) {
     //         printf("\n");
     //     }
     //     printf("%f ", vertices[i]);
     // }
     // printf("\n");
-    // for (int i = 0; i < 36; ++i) {
+    // for (int i = 0; i < n_indices; ++i) {
     //     printf("%d ", indices[i]);
     //     if ((i + 1) % 3 == 0) {
     //         printf("\n");
@@ -141,6 +142,7 @@ int main(void) {
     // Square transform setup
     mat4 square_model = mat4_identity();
     // mat4_scale(&square_model, 0.5f, 0.5f, 0.5f);
+    mat4_scale(&square_model, 0.025f, 0.025f, 0.025f);
 
     int square_model_loc = glGetUniformLocation(shaderProgram, "model");
     glUniformMatrix4fv(square_model_loc, 1, GL_TRUE, (GLfloat *) &square_model.data);
