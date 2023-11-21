@@ -13,6 +13,15 @@
 #define UTIL_SUCCESS 1
 #define UTIL_FAILURE 0
 
+struct bounding_box {
+    float x_min;
+    float x_max;
+    float y_min;
+    float y_max;
+    float z_min;
+    float z_max;
+};
+
 int read_file_source(const char* file_path, char* dest_buffer) {
     FILE *fp;
     int status = UTIL_FAILURE;
@@ -34,6 +43,51 @@ int read_file_source(const char* file_path, char* dest_buffer) {
     }
 
     return status;
+}
+
+struct bounding_box model_bounding_box(float *vertex_buffer, int n_vertices) {
+    struct bounding_box bounds = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+
+    for (int i = 0; i < n_vertices / 3; i++) {
+        float x = vertex_buffer[i * 3];
+        float y = vertex_buffer[i * 3 + 1];
+        float z = vertex_buffer[i * 3 + 2];
+
+        if (x < bounds.x_min) {
+            bounds.x_min = x;
+        }
+        if (x > bounds.x_max) {
+            bounds.x_max = x;
+        }
+        if (y < bounds.y_min) {
+            bounds.y_min = y;
+        }
+        if (y > bounds.y_max) {
+            bounds.y_max = y;
+        }
+        if (z < bounds.z_min) {
+            bounds.z_min = z;
+        }
+        if (z > bounds.z_max) {
+            bounds.z_max = z;
+        }
+    }
+
+    return bounds;
+}
+
+void centre_model(float *vertex_buffer, int n_vertices, struct bounding_box bounds) {
+    float x_offset = (bounds.x_min + bounds.x_max) / 2.0f;
+    float y_offset = (bounds.y_min + bounds.y_max) / 2.0f;
+    float z_offset = (bounds.z_min + bounds.z_max) / 2.0f;
+
+    // printf("x offset: %f\ny_offset: %f\nz_offset: %f\n", x_offset, y_offset, z_offset);
+
+    for (int i = 0; i < n_vertices / 3; i++) {
+        vertex_buffer[i * 3 + 0] -= x_offset;
+        vertex_buffer[i * 3 + 1] -= y_offset;
+        vertex_buffer[i * 3 + 2] -= z_offset;
+    }
 }
 
 // TODO: Write own face triangulation code when faces are of an order greater than 3
@@ -101,6 +155,10 @@ int load_model(const char* file_path,
                 // }
             }
         }
+
+        // centre model
+        struct bounding_box bounds = model_bounding_box(*vertex_buffer, *n_vertices);
+        centre_model(*vertex_buffer, *n_vertices, bounds);
 
         aiReleaseImport(scene);
         status = UTIL_SUCCESS;

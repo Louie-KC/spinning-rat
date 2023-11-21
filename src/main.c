@@ -119,8 +119,8 @@ int main(void) {
     unsigned int *indices;
     int n_vertices;
     int n_indices;
-    // load_model("models/cube.obj", &vertices, &indices, &n_vertices, &n_indices);
-    load_model("models/roi.obj", &vertices, &indices, &n_vertices, &n_indices);
+    load_model("models/cube_offset.obj", &vertices, &indices, &n_vertices, &n_indices);
+    // load_model("models/roi.obj", &vertices, &indices, &n_vertices, &n_indices);
 
     // printf("n_vertices: %d\nn_indices:  %d\n", n_vertices, n_indices);
     // printf("\n\n");
@@ -142,7 +142,7 @@ int main(void) {
     // Square transform setup
     mat4 square_model = mat4_identity();
     // mat4_scale(&square_model, 0.5f, 0.5f, 0.5f);
-    mat4_scale(&square_model, 0.025f, 0.025f, 0.025f);
+    // mat4_scale(&square_model, 0.025f, 0.025f, 0.025f);
 
     int square_model_loc = glGetUniformLocation(shaderProgram, "model");
     glUniformMatrix4fv(square_model_loc, 1, GL_TRUE, (GLfloat *) &square_model.data);
