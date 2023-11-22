@@ -1,5 +1,4 @@
-#include <math.h>
-#include "matrix.h"
+#include "camera.h"
 
 void camera_ortho(mat4 *mat, float left, float right, float top, float bottom, float near, float far) {
     mat->data[0]  = 2.0f/(right - left);

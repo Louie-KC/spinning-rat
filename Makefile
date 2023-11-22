@@ -1,6 +1,6 @@
 CC = clang
 FLAGS = -Wall -pedantic
-INC = -I./include include/glad/glad.c src/matrix.c src/camera.c 
+INC = -I./include include/glad/glad.c src/matrix.c src/camera.c src/util.c
 LOC_LIB = -lglfw -lassimp
 FRAMEWORKS = -framework Cocoa -framework OpenGL
 SRC = src/main.c

@@ -1,9 +1,14 @@
-#pragma once
+#ifndef MATRIX_H
+#define MATRIX_H
+
+#include <stdio.h>
+#include <math.h>
+#define _USE_MATH_DEFINES
+
 typedef struct matrix3f {
     float data[9];
 } mat3;
 
-#pragma once
 typedef struct matrix4f {
     float data[16];
 } mat4;
@@ -37,3 +42,5 @@ void mat4_rotate_x(mat4 *mat, float radians);
 void mat4_rotate_y(mat4 *mat, float radians);
 void mat4_rotate_z(mat4 *mat, float radians);
 void mat4_scale(mat4 *mat, float x, float y, float z);
+
+#endif

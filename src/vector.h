@@ -1,17 +1,19 @@
-#pragma once
+#ifndef VECTOR_H
+#define VECTOR_H
+
+#include <math.h>
+
 typedef struct vector2f {
     float x;
     float y;
 } vec2;
 
-#pragma once
 typedef struct vector3f {
     float x;
     float y;
     float z;
 } vec3;
 
-#pragma once
 typedef struct vector4f {
     float x;
     float y;
@@ -46,3 +48,4 @@ float vec4_magnitude(vec4 vec);
 void vec4_normalise(vec4 *vec);
 float vec4_dot_product(vec4 a, vec4 b);
 
+#endif

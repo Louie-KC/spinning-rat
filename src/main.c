@@ -9,8 +9,7 @@
 #include "camera.h"
 #include "matrix.h"
 // #include "vector.c"
-
-#include "util.c"
+#include "util.h"
 
 #define INFO_BUFFER_SIZE 512
 #define SHADER_SOURCE_MAX_LEN 4096

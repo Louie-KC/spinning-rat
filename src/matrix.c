@@ -1,8 +1,4 @@
-#include <stdio.h>
-#include <math.h>
 #include "matrix.h"
-
-#define _USE_MATH_DEFINES
 
 float degrees_to_radians(float degrees) {
     return degrees * (M_PI/180);

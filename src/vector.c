@@ -1,4 +1,3 @@
-#include <math.h>
 #include "vector.h"
 
 vec2 vec2_zero() {
