@@ -7,3 +7,7 @@ SRC = src/main.c
 
 all:
 	${CC} ${SRC} ${INC} ${FRAMEWORKS} ${LOC_LIB}
+
+clean:
+	rm -r ./a.out
+	rm -r *.dSYM
