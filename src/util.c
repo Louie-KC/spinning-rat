@@ -1,6 +1,6 @@
 #include "util.h"
 
-int read_file_source(const char* file_path, char* dest_buffer) {
+int read_file_source(const char* file_path, char* dest_buffer, int buffer_size) {
     FILE *fp;
     int status = UTIL_FAILURE;
 
@@ -12,10 +12,18 @@ int read_file_source(const char* file_path, char* dest_buffer) {
         unsigned int pos = 0;
         while (fgets(line, FILE_LINE_BUFFER_SIZE, fp) != NULL) {
             unsigned int line_len = strnlen(line, FILE_LINE_BUFFER_SIZE);
+            if (line_len + pos >= buffer_size) {
+                // Prevent buffer overflow on strcpy
+#ifdef UTIL_DEBUG
+                printf("read_file_source '%s' exceeds buffer size %d\n", file_path, buffer_size);
+#endif
+                break;
+            }
             strcpy(dest_buffer + pos, line);
             pos += line_len;
         }
-        fgets(dest_buffer, FILE_BUFFER_SIZE, fp);
+        printf("pos: %d\n", pos);
+        dest_buffer[pos] = '\0';  // set last char to null terminating char
         status = UTIL_SUCCESS;
         fclose(fp);
     }
@@ -98,6 +106,9 @@ int load_model(const char* file_path,
                int *n_vertices,
                int *n_indices,
                unsigned int flags) {
+#ifdef UTIL_DEBUG
+    printf("load_model file: %s\n", file_path);
+#endif
     int status = UTIL_FAILURE;
 
     unsigned int import_flags = aiProcessPreset_TargetRealtime_Fast;
@@ -138,7 +149,9 @@ int load_model(const char* file_path,
             }
 
             // indices
-            // unsigned int max_mNumIndices = 0;
+#ifdef UTIL_DEBUG
+            unsigned int max_mNumIndices = 0;
+#endif
             unsigned int cur_fi = 0;
             while (cur_fi < mesh.mNumFaces) {
                 const struct aiFace face = mesh.mFaces[cur_fi];
@@ -149,11 +162,15 @@ int load_model(const char* file_path,
 
                 cur_fi++;
                 fi++;
-
-                // if (max_mNumIndices < face.mNumIndices) {
-                //     max_mNumIndices = face.mNumIndices;
-                // }
+#ifdef UTIL_DEBUG
+                if (max_mNumIndices < face.mNumIndices) {
+                    max_mNumIndices = face.mNumIndices;
+                }
+#endif
             }
+#ifdef UTIL_DEBUG
+            printf("max_mNumIndices: %d\n", max_mNumIndices);
+#endif
         }
 
         // process flags
@@ -168,6 +185,21 @@ int load_model(const char* file_path,
             normalise_model_scale(*vertex_buffer, *n_vertices, bounds);
         }
 
+#ifdef UTIL_DEBUG
+        printf("n_vertices: %d\nn_indices:  %d", *n_vertices, *n_indices);
+        for (int i = 0; i < *n_vertices; ++i) {
+            if (i % 3 == 0) {
+                printf("\n");
+            }
+            printf("%f ", (*vertex_buffer)[i]);
+        }
+        for (int i = 0; i < *n_indices; ++i) {
+            printf("%d ", (*index_buffer)[i]);
+            if ((i + 1) % 3 == 0) {
+                printf("\n");
+            }
+        }
+#endif
         aiReleaseImport(scene);
         status = UTIL_SUCCESS;
     } else {

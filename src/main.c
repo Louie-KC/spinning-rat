@@ -31,7 +31,7 @@ int compileShader(unsigned int* shader, int type, const char *source) {
     glGetShaderiv(*shader, GL_COMPILE_STATUS, &status);
     if (!status) {
         glGetShaderInfoLog(*shader, INFO_BUFFER_SIZE, NULL, infoLogBuffer);
-        printf("Shader compile failure: \n%s\nError: %s\n", source, infoLogBuffer);
+        printf("Shader compile failure: \n%s\n%s\n", source, infoLogBuffer);
     }
     return status;
 }
@@ -47,7 +47,7 @@ unsigned int linkShaders(unsigned int vertexShader, unsigned int fragmentShader)
     glGetProgramiv(program, GL_LINK_STATUS, &success);
     if (!success) {
         glGetProgramInfoLog(program, INFO_BUFFER_SIZE, NULL, infoLogBuffer);
-        printf("Shader link failure\nError: %s\n", infoLogBuffer); 
+        printf("Shader link failure - %s\n", infoLogBuffer); 
     }
     return program;
 }
@@ -55,7 +55,8 @@ unsigned int linkShaders(unsigned int vertexShader, unsigned int fragmentShader)
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     screen_width = width;
     screen_height = height;
-    camera_persp(&projection_matrix, degrees_to_radians(45.0f), (float) screen_width / (float) screen_height, 0.1f, 100.0f);
+    camera_persp(&projection_matrix, degrees_to_radians(45.0f),
+                 (float) screen_width / (float) screen_height, 0.1f, 100.0f);
     glViewport(0, 0, width, height);
 }
 
@@ -97,10 +98,10 @@ int main(void) {
     char vertexShaderSource[SHADER_SOURCE_MAX_LEN];
     char fragmentShaderSource[SHADER_SOURCE_MAX_LEN];
     
-    if (!read_file_source("src/shaders/basic-vertex.glsl", vertexShaderSource)) {
+    if (!read_file_source("src/shaders/basic-vertex.glsl", vertexShaderSource, SHADER_SOURCE_MAX_LEN)) {
         printf("failed to read vertex shader source\n");           
     }
-    if (!read_file_source("src/shaders/basic-fragment.glsl", fragmentShaderSource)) {
+    if (!read_file_source("src/shaders/basic-fragment.glsl", fragmentShaderSource, SHADER_SOURCE_MAX_LEN)) {
         printf("failed to read fragment shader source\n");
     }
 
@@ -121,23 +122,6 @@ int main(void) {
     unsigned int import_flags = UTIL_PROCESS_CENTRE_MODEL | UTIL_PROCESS_SCALE_MODEL;
     // load_model("models/cube_offset.obj", &vertices, &indices, &n_vertices, &n_indices);
     load_model("models/teapot.obj", &vertices, &indices, &n_vertices, &n_indices, import_flags);
-
-    // printf("n_vertices: %d\nn_indices:  %d\n", n_vertices, n_indices);
-    // printf("\n\n");
-    // for (int i = 0; i < n_vertices; ++i) {
-    //     if (i % 3 == 0) {
-    //         printf("\n");
-    //     }
-    //     printf("%f ", vertices[i]);
-    // }
-    // printf("\n");
-    // for (int i = 0; i < n_indices; ++i) {
-    //     printf("%d ", indices[i]);
-    //     if ((i + 1) % 3 == 0) {
-    //         printf("\n");
-    //     }
-    // }
-    // printf("\n");
 
     // Square transform setup
     mat4 square_model = mat4_identity();

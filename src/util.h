@@ -9,6 +9,8 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
+// #define UTIL_DEBUG
+
 #define FILE_LINE_BUFFER_SIZE 256
 #define FILE_BUFFER_SIZE 65536 * 128
 
@@ -27,11 +29,28 @@ struct bounding_box {
     float z_max;
 };
 
+// Read textual file contents.
+// Max line length: FILE_LINE_BUFFER_SIZE
+// Max buffer size: FILE_BUFFER_SIZE
+int read_file_source(const char* file_path, char* dest_buffer, int buffer_size);
 
-int read_file_source(const char* file_path, char* dest_buffer);
+// Calculate the bounding box for a set of vertices.
 struct bounding_box model_bounding_box(float *vertex_buffer, int n_vertices);
+
+// Shift all vertices of a model/mesh to be centered at [0, 0, 0].
+// Assumes `bounds` is the result of model_bounding_box with the same model.
 void centre_model(float *vertex_buffer, int n_vertices, struct bounding_box bounds);
+
+// Scale a model/mesh to be at most 2 unit lengths ([-1, 1] if centred).
+// NOTE: This removes any scale/length of unit lengths (metres, feet, etc) from mesh.
+// Assumes `bounds` is the result of model_bounding_box with the same model.
 void normalise_model_scale(float* vertex_buffer, int n_vertices, struct bounding_box bounds);
+
+// Reads in a 3D model from `file_path` to `vertex_buffer` and `index_buffer`.
+// Allocates memory for `vertex_buffer` and `index_buffer`.
+// Stores the length of the `vertex_buffer` at `n_vertices`.
+// Stores the length of the `index_buffer` at `n_indices`.
+// Set `flags` with `UTIL_PROCESS...` to perform some processing on model. 0 otherwise. 
 int load_model(const char* file_path,
                float** vertex_buffer,
                unsigned int** index_buffer,
