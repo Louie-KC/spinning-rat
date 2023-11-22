@@ -10,6 +10,7 @@
 #include "matrix.h"
 // #include "vector.c"
 #include "util.h"
+#include "scene-object.h"
 
 #define INFO_BUFFER_SIZE 512
 #define SHADER_SOURCE_MAX_LEN 4096
@@ -114,43 +115,19 @@ int main(void) {
     glDeleteShader(vertexShader);
     glDeleteShader(fragShader);
 
-    // Load model: Cube
+    // Load model
+    scene_object loaded_model;
     float *vertices;
     unsigned int *indices;
     int n_vertices;
     int n_indices;
     unsigned int import_flags = UTIL_PROCESS_CENTRE_MODEL | UTIL_PROCESS_SCALE_MODEL;
-    // load_model("models/cube_offset.obj", &vertices, &indices, &n_vertices, &n_indices);
+    // load_model("models/cube_offset.obj", &vertices, &indices, &n_vertices, &n_indices, import_flags);
     load_model("models/teapot.obj", &vertices, &indices, &n_vertices, &n_indices, import_flags);
-
-    // Square transform setup
-    mat4 square_model = mat4_identity();
-    // mat4_scale(&square_model, 0.5f, 0.5f, 0.5f);
-    // mat4_scale(&square_model, 0.025f, 0.025f, 0.025f);
+    scn_obj_init(&loaded_model, vertices, indices, n_vertices, n_indices);
 
     int square_model_loc = glGetUniformLocation(shaderProgram, "model");
-    glUniformMatrix4fv(square_model_loc, 1, GL_TRUE, (GLfloat *) &square_model.data);
-
-    // buffers
-    unsigned int VBO, VAO, EBO;
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);
-
-    glBindVertexArray(VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices[0]) * n_vertices, vertices, GL_STATIC_DRAW);
-    
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices[0]) * n_indices, indices, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
-
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glUniformMatrix4fv(square_model_loc, 1, GL_TRUE, (GLfloat *) &loaded_model.model_matrix.data);
     
     // Cameras
     mat4 view = mat4_identity();
@@ -170,6 +147,7 @@ int main(void) {
     double frame_time = 0.0;
 
     // Render
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     while (!glfwWindowShouldClose(window)) {
         glClearColor(0.2f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
@@ -177,10 +155,10 @@ int main(void) {
         glUseProgram(shaderProgram);
 
         // Update matrices        
-        // transform - spin the square
-        mat4_rotate_y(&square_model, degrees_to_radians(ROTATION_DEGREES_PER_SEC * frame_time));
+        // transform - spin the loaded model
+        mat4_rotate_y(&loaded_model.model_matrix, degrees_to_radians(ROTATION_DEGREES_PER_SEC * frame_time));
         square_model_loc = glGetUniformLocation(shaderProgram, "model");
-        glUniformMatrix4fv(square_model_loc, 1, GL_TRUE, (GLfloat *) &square_model.data);
+        glUniformMatrix4fv(square_model_loc, 1, GL_TRUE, (GLfloat *) &loaded_model.model_matrix.data);
 
         view_loc = glGetUniformLocation(shaderProgram, "view");
         glUniformMatrix4fv(view_loc, 1, GL_TRUE, (GLfloat *) &view.data);
@@ -189,9 +167,10 @@ int main(void) {
         glUniformMatrix4fv(proj_loc, 1, GL_TRUE, (GLfloat *) &projection_matrix.data);
 
         // Draw
-        glBindVertexArray(VAO);
+        glBindVertexArray(loaded_model.VAO);
         glDrawElements(GL_TRIANGLES, n_indices, GL_UNSIGNED_INT, 0);
         // glDrawArrays(GL_TRIANGLES, 0, 3);
+        glBindVertexArray(0);
 
         // Buffer swap and IO
         glfwSwapBuffers(window);
@@ -202,14 +181,8 @@ int main(void) {
         last_frame = glfwGetTime();
     }
 
-
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
-    glDeleteBuffers(1, &EBO);
     glDeleteProgram(shaderProgram);
-    
-    free(vertices);
-    free(indices);
+    scn_obj_clean(&loaded_model);
 
     printf("exiting\n");
     return 0;
