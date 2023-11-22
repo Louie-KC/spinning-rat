@@ -119,8 +119,9 @@ int main(void) {
     unsigned int *indices;
     int n_vertices;
     int n_indices;
-    load_model("models/cube_offset.obj", &vertices, &indices, &n_vertices, &n_indices);
-    // load_model("models/roi.obj", &vertices, &indices, &n_vertices, &n_indices);
+    unsigned int import_flags = UTIL_PROCESS_CENTRE_MODEL | UTIL_PROCESS_SCALE_MODEL;
+    // load_model("models/cube_offset.obj", &vertices, &indices, &n_vertices, &n_indices);
+    load_model("models/teapot.obj", &vertices, &indices, &n_vertices, &n_indices, import_flags);
 
     // printf("n_vertices: %d\nn_indices:  %d\n", n_vertices, n_indices);
     // printf("\n\n");

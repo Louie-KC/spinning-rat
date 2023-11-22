@@ -13,6 +13,9 @@
 #define UTIL_SUCCESS 1
 #define UTIL_FAILURE 0
 
+#define UTIL_PROCESS_CENTRE_MODEL 0b10000000
+#define UTIL_PROCESS_SCALE_MODEL  0b01000000
+
 struct bounding_box {
     float x_min;
     float x_max;
@@ -84,9 +87,30 @@ void centre_model(float *vertex_buffer, int n_vertices, struct bounding_box boun
     // printf("x offset: %f\ny_offset: %f\nz_offset: %f\n", x_offset, y_offset, z_offset);
 
     for (int i = 0; i < n_vertices / 3; i++) {
-        vertex_buffer[i * 3 + 0] -= x_offset;
+        vertex_buffer[i * 3]     -= x_offset;
         vertex_buffer[i * 3 + 1] -= y_offset;
         vertex_buffer[i * 3 + 2] -= z_offset;
+    }
+}
+
+// Throw away original units (metres, feet, etc) and normalise to unit length [-1...1]
+void normalise_model_scale(float* vertex_buffer, int n_vertices, struct bounding_box bounds) {
+    float x_scale = 1.0f / (bounds.x_max - bounds.x_min);
+    float y_scale = 1.0f / (bounds.y_max - bounds.y_min);
+    float z_scale = 1.0f / (bounds.z_max - bounds.z_min);
+
+    float scale = x_scale;
+    if (scale < y_scale) {
+        scale = y_scale;
+    }
+    if (scale < z_scale) {
+        scale = z_scale;
+    }
+
+    for (int i = 0; i < n_vertices / 3; i++) {
+        vertex_buffer[i * 3]     *= scale;
+        vertex_buffer[i * 3 + 1] *= scale;
+        vertex_buffer[i * 3 + 2] *= scale;
     }
 }
 
@@ -97,11 +121,12 @@ int load_model(const char* file_path,
                float** vertex_buffer,
                unsigned int** index_buffer,
                int *n_vertices,
-               int *n_indices) {
+               int *n_indices,
+               unsigned int flags) {
     int status = UTIL_FAILURE;
 
-    unsigned int flags = aiProcessPreset_TargetRealtime_Fast;
-    const C_STRUCT aiScene *scene = aiImportFile(file_path, flags);
+    unsigned int import_flags = aiProcessPreset_TargetRealtime_Fast;
+    const C_STRUCT aiScene *scene = aiImportFile(file_path, import_flags);
 
     if (scene && scene->mFlags != AI_SCENE_FLAGS_INCOMPLETE) {
         C_STRUCT aiMesh mesh;
@@ -156,9 +181,17 @@ int load_model(const char* file_path,
             }
         }
 
-        // centre model
-        struct bounding_box bounds = model_bounding_box(*vertex_buffer, *n_vertices);
-        centre_model(*vertex_buffer, *n_vertices, bounds);
+        // process flags
+        struct bounding_box bounds;
+        if (flags) {
+            bounds = model_bounding_box(*vertex_buffer, *n_vertices);
+        }
+        if (flags & UTIL_PROCESS_CENTRE_MODEL) {
+            centre_model(*vertex_buffer, *n_vertices, bounds);
+        }
+        if (flags & UTIL_PROCESS_SCALE_MODEL) {
+            normalise_model_scale(*vertex_buffer, *n_vertices, bounds);
+        }
 
         aiReleaseImport(scene);
         status = UTIL_SUCCESS;
