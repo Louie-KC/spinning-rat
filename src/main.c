@@ -17,6 +17,8 @@
 
 #define ROTATION_DEGREES_PER_SEC 90.0f
 
+#define N_MODELS 2
+
 int screen_width = 640;
 int screen_height = 480;
 
@@ -115,19 +117,23 @@ int main(void) {
     glDeleteShader(vertexShader);
     glDeleteShader(fragShader);
 
-    // Load model
-    scene_object loaded_model;
-    float *vertices;
-    unsigned int *indices;
-    int n_vertices;
-    int n_indices;
-    unsigned int import_flags = UTIL_PROCESS_CENTRE_MODEL | UTIL_PROCESS_SCALE_MODEL;
-    // load_model("models/cube_offset.obj", &vertices, &indices, &n_vertices, &n_indices, import_flags);
-    load_model("models/teapot.obj", &vertices, &indices, &n_vertices, &n_indices, import_flags);
-    scn_obj_init(&loaded_model, vertices, indices, n_vertices, n_indices);
+    // Load model(s)
+    scene_object loaded_models[N_MODELS];
+    load_model("models/teapot.obj", &loaded_models[0].vertex_buffer,
+               &loaded_models[0].index_buffer, &loaded_models[0].vertex_buffer_len,
+               &loaded_models[0].index_buffer_len, UTIL_PROCESS_SCALE_MODEL);
+    scn_obj_init(&loaded_models[0]);
 
-    int square_model_loc = glGetUniformLocation(shaderProgram, "model");
-    glUniformMatrix4fv(square_model_loc, 1, GL_TRUE, (GLfloat *) &loaded_model.model_matrix.data);
+    load_model("models/cube.obj", &loaded_models[1].vertex_buffer,
+               &loaded_models[1].index_buffer, &loaded_models[1].vertex_buffer_len,
+               &loaded_models[1].index_buffer_len, 0);
+    scn_obj_init(&loaded_models[1]);
+
+    mat4_translate(&loaded_models[0].model_matrix, 0.0f, -0.5f, 0.0f);
+    mat4_translate(&loaded_models[1].model_matrix, 1.0f, 1.0f, -2.0f);
+
+    int model_loc = glGetUniformLocation(shaderProgram, "model");
+    // glUniformMatrix4fv(model_loc, 1, GL_TRUE, (GLfloat *) &loaded_models[0].model_matrix.data);
     
     // Cameras
     mat4 view = mat4_identity();
@@ -154,23 +160,26 @@ int main(void) {
 
         glUseProgram(shaderProgram);
 
-        // Update matrices        
-        // transform - spin the loaded model
-        mat4_rotate_y(&loaded_model.model_matrix, degrees_to_radians(ROTATION_DEGREES_PER_SEC * frame_time));
-        square_model_loc = glGetUniformLocation(shaderProgram, "model");
-        glUniformMatrix4fv(square_model_loc, 1, GL_TRUE, (GLfloat *) &loaded_model.model_matrix.data);
-
         view_loc = glGetUniformLocation(shaderProgram, "view");
         glUniformMatrix4fv(view_loc, 1, GL_TRUE, (GLfloat *) &view.data);
 
         proj_loc = glGetUniformLocation(shaderProgram, "projection");
         glUniformMatrix4fv(proj_loc, 1, GL_TRUE, (GLfloat *) &projection_matrix.data);
 
-        // Draw
-        glBindVertexArray(loaded_model.VAO);
-        glDrawElements(GL_TRIANGLES, n_indices, GL_UNSIGNED_INT, 0);
-        // glDrawArrays(GL_TRIANGLES, 0, 3);
-        glBindVertexArray(0);
+        float rotation_amount = degrees_to_radians(ROTATION_DEGREES_PER_SEC * frame_time);
+        for (int i = 0; i < N_MODELS; i++) {
+            // Update matrices
+            // transform - spin the loaded model
+            mat4_rotate_y(&loaded_models[i].model_matrix, rotation_amount);
+            model_loc = glGetUniformLocation(shaderProgram, "model");
+            glUniformMatrix4fv(model_loc, 1, GL_TRUE, (GLfloat *) &loaded_models[i].model_matrix.data);
+
+            // Draw
+            glBindVertexArray(loaded_models[i].VAO);
+            glDrawElements(GL_TRIANGLES, loaded_models[i].index_buffer_len, GL_UNSIGNED_INT, 0);
+            // glDrawArrays(GL_TRIANGLES, 0, 3);
+            glBindVertexArray(0);
+        }
 
         // Buffer swap and IO
         glfwSwapBuffers(window);
@@ -182,7 +191,9 @@ int main(void) {
     }
 
     glDeleteProgram(shaderProgram);
-    scn_obj_clean(&loaded_model);
+    for (int i = 0; i < N_MODELS; i++) {
+        scn_obj_clean(&loaded_models[i]);
+    }
 
     printf("exiting\n");
     return 0;

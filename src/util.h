@@ -54,8 +54,8 @@ void normalise_model_scale(float* vertex_buffer, int n_vertices, struct bounding
 int load_model(const char* file_path,
                float** vertex_buffer,
                unsigned int** index_buffer,
-               int *n_vertices,
-               int *n_indices,
+               unsigned int *n_vertices,
+               unsigned int *n_indices,
                unsigned int flags);
 
 

@@ -1,16 +1,6 @@
 #include "scene-object.h"
 
-void scn_obj_init(scene_object* scn_obj,
-                 float* vertex_buffer,
-                 unsigned int* index_buffer,
-                 unsigned int vertex_buffer_len,
-                 unsigned int index_buffer_len) {
-    // Set scn_obj fields
-    scn_obj->vertex_buffer = vertex_buffer;
-    scn_obj->index_buffer  = index_buffer;
-    scn_obj->vertex_buffer_len = vertex_buffer_len;
-    scn_obj->index_buffer_len  = index_buffer_len;
-
+void scn_obj_init(scene_object* scn_obj) {
     // OpenGL buffers
     glGenVertexArrays(1, &scn_obj->VAO);
     glGenBuffers(1, &scn_obj->VBO);
@@ -18,12 +8,12 @@ void scn_obj_init(scene_object* scn_obj,
 
     glBindVertexArray(scn_obj->VAO);
     glBindBuffer(GL_ARRAY_BUFFER, scn_obj->VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertex_buffer_len,
-                 vertex_buffer, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * scn_obj->vertex_buffer_len,
+                 scn_obj->vertex_buffer, GL_STATIC_DRAW);
     
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, scn_obj->EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * index_buffer_len,
-                 index_buffer, GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * scn_obj->index_buffer_len,
+                 scn_obj->index_buffer, GL_STATIC_DRAW);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);

@@ -19,11 +19,7 @@ typedef struct scene_object {
     struct scene_object* parent;
 } scene_object;
 
-void scn_obj_init(scene_object* scn_obj,
-                 float* vertex_buffer,
-                 unsigned int* index_buffer,
-                 unsigned int vert_buffer_len,
-                 unsigned int index_buffer_len);
+void scn_obj_init(scene_object* scn_obj);
 
 void scn_obj_clean(scene_object* scn_obj);
 

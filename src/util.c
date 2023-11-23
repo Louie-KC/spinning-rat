@@ -22,7 +22,6 @@ int read_file_source(const char* file_path, char* dest_buffer, int buffer_size) 
             strcpy(dest_buffer + pos, line);
             pos += line_len;
         }
-        printf("pos: %d\n", pos);
         dest_buffer[pos] = '\0';  // set last char to null terminating char
         status = UTIL_SUCCESS;
         fclose(fp);
@@ -103,8 +102,8 @@ void normalise_model_scale(float* vertex_buffer, int n_vertices, struct bounding
 int load_model(const char* file_path,
                float** vertex_buffer,
                unsigned int** index_buffer,
-               int *n_vertices,
-               int *n_indices,
+               unsigned int *n_vertices,
+               unsigned int *n_indices,
                unsigned int flags) {
 #ifdef UTIL_DEBUG
     printf("load_model file: %s\n", file_path);
