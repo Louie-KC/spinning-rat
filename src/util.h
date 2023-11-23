@@ -46,14 +46,16 @@ void centre_model(float *vertex_buffer, int n_vertices, struct bounding_box boun
 // Assumes `bounds` is the result of model_bounding_box with the same model.
 void normalise_model_scale(float* vertex_buffer, int n_vertices, struct bounding_box bounds);
 
-// Reads in a 3D model from `file_path` to `vertex_buffer` and `index_buffer`.
-// Allocates memory for `vertex_buffer` and `index_buffer`.
+// Reads in a 3D model from `file_path` to the provided buffers.
+// Allocates memory for `vertex_buffer`, `index_buffer` and `normals_buffer`.
 // Stores the length of the `vertex_buffer` at `n_vertices`.
 // Stores the length of the `index_buffer` at `n_indices`.
+// Note, the length of the `normals_buffer` is the same as the `vertex_buffer`.
 // Set `flags` with `UTIL_PROCESS...` to perform some processing on model. 0 otherwise. 
 int load_model(const char* file_path,
                float** vertex_buffer,
                unsigned int** index_buffer,
+               float** normals_buffer,
                unsigned int *n_vertices,
                unsigned int *n_indices,
                unsigned int flags);

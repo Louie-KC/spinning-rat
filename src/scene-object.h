@@ -13,6 +13,7 @@ typedef struct scene_object {
     unsigned int EBO;
     float* vertex_buffer;
     unsigned int* index_buffer;
+    float* normals_buffer;
     unsigned int vertex_buffer_len;
     unsigned int index_buffer_len;
     mat4 model_matrix;

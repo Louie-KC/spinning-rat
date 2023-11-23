@@ -102,6 +102,7 @@ void normalise_model_scale(float* vertex_buffer, int n_vertices, struct bounding
 int load_model(const char* file_path,
                float** vertex_buffer,
                unsigned int** index_buffer,
+               float** normals_buffer,
                unsigned int *n_vertices,
                unsigned int *n_indices,
                unsigned int flags) {
@@ -129,20 +130,26 @@ int load_model(const char* file_path,
             *n_vertices += 3 * scene->mMeshes[mi]->mNumVertices;
             *n_indices  += 3 * scene->mMeshes[mi]->mNumFaces;
         }
-        *vertex_buffer = malloc(*n_vertices * sizeof(float));
-        *index_buffer  = malloc(*n_indices * sizeof(unsigned int));
+        *vertex_buffer  = malloc(*n_vertices * sizeof(float));
+        *index_buffer   = malloc(*n_indices * sizeof(unsigned int));
+        *normals_buffer = malloc(*n_vertices * sizeof(float));
 
         vi = 0;
         fi = 0;
         for (mi = 0; mi < scene->mNumMeshes; mi++) {
             mesh = *scene->mMeshes[mi];
 
-            // vertices
+            // vertices & normals
             unsigned int cur_vi = 0;
             while (cur_vi < mesh.mNumVertices) {
                 (*vertex_buffer)[vi * 3]     = mesh.mVertices[cur_vi].x;
                 (*vertex_buffer)[vi * 3 + 1] = mesh.mVertices[cur_vi].y;
                 (*vertex_buffer)[vi * 3 + 2] = mesh.mVertices[cur_vi].z;
+
+                (*normals_buffer)[vi * 3]     = mesh.mNormals[cur_vi].x;
+                (*normals_buffer)[vi * 3 + 1] = mesh.mNormals[cur_vi].y;
+                (*normals_buffer)[vi * 3 + 2] = mesh.mNormals[cur_vi].z;
+                
                 cur_vi++;
                 vi++;
             }
@@ -185,12 +192,12 @@ int load_model(const char* file_path,
         }
 
 #ifdef UTIL_DEBUG
-        printf("n_vertices: %d\nn_indices:  %d", *n_vertices, *n_indices);
+        printf("n_vertices: %d\nn_indices:  %d\n", *n_vertices, *n_indices);
         for (int i = 0; i < *n_vertices; ++i) {
-            if (i % 3 == 0) {
+            printf("%f ", (*vertex_buffer)[i]);
+            if ((i + 1) % 3 == 0) {
                 printf("\n");
             }
-            printf("%f ", (*vertex_buffer)[i]);
         }
         for (int i = 0; i < *n_indices; ++i) {
             printf("%d ", (*index_buffer)[i]);
@@ -198,6 +205,13 @@ int load_model(const char* file_path,
                 printf("\n");
             }
         }
+        for (int i = 0; i < *n_vertices; ++i) {
+            printf("%f ", (*normals_buffer)[i]);
+            if ((i + 1) % 3 == 0) {
+                printf("\n");
+            }
+        }
+        printf("\n");
 #endif
         aiReleaseImport(scene);
         status = UTIL_SUCCESS;
