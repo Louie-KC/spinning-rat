@@ -24,6 +24,7 @@ int screen_height = 480;
 
 // Camera
 mat4 projection_matrix;
+mat4 view_matrix;
 
 int compileShader(unsigned int* shader, int type, const char *source) {
     int status;
@@ -53,6 +54,31 @@ unsigned int linkShaders(unsigned int vertexShader, unsigned int fragmentShader)
         printf("Shader link failure - %s\n", infoLogBuffer); 
     }
     return program;
+}
+
+void process_input(GLFWwindow* window, double frame_time) {
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE)) {
+        glfwSetWindowShouldClose(window, GL_TRUE);
+    }
+    // Camera movement
+    if (glfwGetKey(window, GLFW_KEY_W)) {
+        mat4_translate(&view_matrix, 0.0f, 0.0f, 1.0f * frame_time);
+    }
+    if (glfwGetKey(window, GLFW_KEY_S)) {
+        mat4_translate(&view_matrix, 0.0f, 0.0f, -1.0f * frame_time);
+    }
+    if (glfwGetKey(window, GLFW_KEY_A)) {
+        mat4_translate(&view_matrix, 1.0f * frame_time, 0.0f, 0.0f);
+    }
+    if (glfwGetKey(window, GLFW_KEY_D)) {
+        mat4_translate(&view_matrix, -1.0f * frame_time, 0.0f, 0.0f);
+    }
+    if (glfwGetKey(window, GLFW_KEY_E)) {
+        mat4_translate(&view_matrix, 0.0f, -1.0f * frame_time, 0.0f);
+    }
+    if (glfwGetKey(window, GLFW_KEY_Q)) {
+        mat4_translate(&view_matrix, 0.0f, 1.0f * frame_time, 0.0f);
+    }
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
@@ -136,14 +162,14 @@ int main(void) {
     // glUniformMatrix4fv(model_loc, 1, GL_TRUE, (GLfloat *) &loaded_models[0].model_matrix.data);
     
     // Cameras
-    mat4 view = mat4_identity();
-    mat4_translate(&view, 0.0f, 0.0f, -3.0f);
+    view_matrix = mat4_identity();
+    mat4_translate(&view_matrix, 0.0f, 0.0f, -3.0f);
 
     projection_matrix = mat4_zero();
     camera_persp(&projection_matrix, degrees_to_radians(45.0f), (float) screen_width / (float) screen_height, 0.1f, 100.0f);
     
     int view_loc = glGetUniformLocation(shaderProgram, "view");
-    glUniformMatrix4fv(view_loc, 1, GL_TRUE, (GLfloat *) &view.data);
+    glUniformMatrix4fv(view_loc, 1, GL_TRUE, (GLfloat *) &view_matrix.data);
     
     int proj_loc = glGetUniformLocation(shaderProgram, "projection");
     glUniformMatrix4fv(proj_loc, 1, GL_TRUE, (GLfloat *) &projection_matrix.data);
@@ -155,13 +181,15 @@ int main(void) {
     // Render
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     while (!glfwWindowShouldClose(window)) {
+        process_input(window, frame_time);
+
         glClearColor(0.2f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
         glUseProgram(shaderProgram);
 
         view_loc = glGetUniformLocation(shaderProgram, "view");
-        glUniformMatrix4fv(view_loc, 1, GL_TRUE, (GLfloat *) &view.data);
+        glUniformMatrix4fv(view_loc, 1, GL_TRUE, (GLfloat *) &view_matrix.data);
 
         proj_loc = glGetUniformLocation(shaderProgram, "projection");
         glUniformMatrix4fv(proj_loc, 1, GL_TRUE, (GLfloat *) &projection_matrix.data);
