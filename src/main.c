@@ -8,7 +8,7 @@
 #include <GLFW/glfw3.h>
 #include "camera.h"
 #include "matrix.h"
-// #include "vector.c"
+#include "vector.h"
 #include "util.h"
 #include "scene-object.h"
 
@@ -127,10 +127,10 @@ int main(void) {
     char vertexShaderSource[SHADER_SOURCE_MAX_LEN];
     char fragmentShaderSource[SHADER_SOURCE_MAX_LEN];
     
-    if (!read_file_source("src/shaders/basic-vertex.glsl", vertexShaderSource, SHADER_SOURCE_MAX_LEN)) {
+    if (!read_file_source("src/shaders/shaded-vertex.glsl", vertexShaderSource, SHADER_SOURCE_MAX_LEN)) {
         printf("failed to read vertex shader source\n");           
     }
-    if (!read_file_source("src/shaders/basic-fragment.glsl", fragmentShaderSource, SHADER_SOURCE_MAX_LEN)) {
+    if (!read_file_source("src/shaders/shaded-fragment.glsl", fragmentShaderSource, SHADER_SOURCE_MAX_LEN)) {
         printf("failed to read fragment shader source\n");
     }
 
@@ -145,6 +145,7 @@ int main(void) {
 
     // Load model(s)
     scene_object loaded_models[N_MODELS];
+    // Teapot appears to have normals backwards
     load_model("models/teapot.obj", &loaded_models[0].vertex_buffer,
                &loaded_models[0].index_buffer, &loaded_models[0].normals_buffer,
                &loaded_models[0].vertex_buffer_len, &loaded_models[0].index_buffer_len,
@@ -163,6 +164,12 @@ int main(void) {
     // int model_loc = glGetUniformLocation(shaderProgram, "model");
     // glUniformMatrix4fv(model_loc, 1, GL_TRUE, (GLfloat *) &loaded_models[0].model_matrix.data);
     
+    // Light (point)
+    vec3 point_light_pos = vec3_zero();
+    point_light_pos.x = -2.0f;
+
+    // point_light_pos.y -= 5.0f;
+
     // Cameras
     view_matrix = mat4_identity();
     mat4_translate(&view_matrix, 0.0f, 0.0f, -3.0f);
@@ -175,17 +182,21 @@ int main(void) {
     double frame_time = 0.0;
 
     // Render
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     glEnable(GL_CULL_FACE);
+    glEnable(GL_DEPTH_TEST);
 
     while (!glfwWindowShouldClose(window)) {
         process_input(window, frame_time);
 
         glClearColor(0.2f, 0.0f, 0.0f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glUseProgram(shaderProgram);
+
+        int u_light_pos_loc = glGetUniformLocation(shaderProgram, "u_light_pos");
+        glUniform3fv(u_light_pos_loc, 1, (GLfloat *) &point_light_pos);
 
         float rotation_amount = degrees_to_radians(ROTATION_DEGREES_PER_SEC * frame_time);
         for (int i = 0; i < N_MODELS; i++) {
@@ -196,6 +207,9 @@ int main(void) {
             int u_mvp_loc = glGetUniformLocation(shaderProgram, "u_mvp");
             mat4 mvp = scn_obj_mvp(&loaded_models[i], view_matrix, projection_matrix);
             glUniformMatrix4fv(u_mvp_loc, 1, GL_TRUE, (GLfloat *) &mvp);
+
+            int u_model_loc = glGetUniformLocation(shaderProgram, "u_model");
+            glUniformMatrix4fv(u_model_loc, 1, GL_TRUE, (GLfloat *) &loaded_models[i].model_matrix.data);
 
             // Draw
             glBindVertexArray(loaded_models[i].VAO);

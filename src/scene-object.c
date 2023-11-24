@@ -8,15 +8,22 @@ void scn_obj_init(scene_object* scn_obj) {
 
     glBindVertexArray(scn_obj->VAO);
     glBindBuffer(GL_ARRAY_BUFFER, scn_obj->VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * scn_obj->vertex_buffer_len,
-                 scn_obj->vertex_buffer, GL_STATIC_DRAW);
+    int vertex_buffer_size = sizeof(float) * scn_obj->vertex_buffer_len;
+    // allocate buffer for BOTH vertices and normals. Then load first half with vertices
+    // and other half with normals (batching).
+    glBufferData(GL_ARRAY_BUFFER, vertex_buffer_size * 2, NULL, GL_STATIC_DRAW);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, vertex_buffer_size, scn_obj->vertex_buffer);
+    glBufferSubData(GL_ARRAY_BUFFER, vertex_buffer_size, vertex_buffer_size, scn_obj->normals_buffer);
     
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, scn_obj->EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * scn_obj->index_buffer_len,
                  scn_obj->index_buffer, GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*) (vertex_buffer_size+0L));
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);  // release VAO
