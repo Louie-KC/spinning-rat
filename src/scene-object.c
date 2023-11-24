@@ -25,6 +25,13 @@ void scn_obj_init(scene_object* scn_obj) {
     scn_obj->parent = NULL;
 }
 
+mat4 scn_obj_mvp(scene_object* scn_obj, mat4 view, mat4 proj) {
+    mat4 result = proj;
+    mat4_multiply(&result, &view);
+    mat4_multiply(&result, &scn_obj->model_matrix);
+    return result;
+}
+
 void scn_obj_clean(scene_object* scn_obj) {
     if (scn_obj == NULL) {
         return;

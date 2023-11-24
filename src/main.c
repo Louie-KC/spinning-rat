@@ -160,7 +160,7 @@ int main(void) {
     mat4_translate(&loaded_models[0].model_matrix, 0.0f, -0.5f, 0.0f);
     mat4_translate(&loaded_models[1].model_matrix, 1.0f, 1.0f, -2.0f);
 
-    int model_loc = glGetUniformLocation(shaderProgram, "model");
+    // int model_loc = glGetUniformLocation(shaderProgram, "model");
     // glUniformMatrix4fv(model_loc, 1, GL_TRUE, (GLfloat *) &loaded_models[0].model_matrix.data);
     
     // Cameras
@@ -169,12 +169,6 @@ int main(void) {
 
     projection_matrix = mat4_zero();
     camera_persp(&projection_matrix, degrees_to_radians(45.0f), (float) screen_width / (float) screen_height, 0.1f, 100.0f);
-    
-    int view_loc = glGetUniformLocation(shaderProgram, "view");
-    glUniformMatrix4fv(view_loc, 1, GL_TRUE, (GLfloat *) &view_matrix.data);
-    
-    int proj_loc = glGetUniformLocation(shaderProgram, "projection");
-    glUniformMatrix4fv(proj_loc, 1, GL_TRUE, (GLfloat *) &projection_matrix.data);
 
     // Time
     double last_frame = glfwGetTime();
@@ -193,19 +187,15 @@ int main(void) {
 
         glUseProgram(shaderProgram);
 
-        view_loc = glGetUniformLocation(shaderProgram, "view");
-        glUniformMatrix4fv(view_loc, 1, GL_TRUE, (GLfloat *) &view_matrix.data);
-
-        proj_loc = glGetUniformLocation(shaderProgram, "projection");
-        glUniformMatrix4fv(proj_loc, 1, GL_TRUE, (GLfloat *) &projection_matrix.data);
-
         float rotation_amount = degrees_to_radians(ROTATION_DEGREES_PER_SEC * frame_time);
         for (int i = 0; i < N_MODELS; i++) {
-            // Update matrices
             // transform - spin the loaded model
             mat4_rotate_y(&loaded_models[i].model_matrix, rotation_amount);
-            model_loc = glGetUniformLocation(shaderProgram, "model");
-            glUniformMatrix4fv(model_loc, 1, GL_TRUE, (GLfloat *) &loaded_models[i].model_matrix.data);
+
+            // Calculate and pass in mvp matrix
+            int u_mvp_loc = glGetUniformLocation(shaderProgram, "u_mvp");
+            mat4 mvp = scn_obj_mvp(&loaded_models[i], view_matrix, projection_matrix);
+            glUniformMatrix4fv(u_mvp_loc, 1, GL_TRUE, (GLfloat *) &mvp);
 
             // Draw
             glBindVertexArray(loaded_models[i].VAO);

@@ -22,6 +22,8 @@ typedef struct scene_object {
 
 void scn_obj_init(scene_object* scn_obj);
 
+mat4 scn_obj_mvp(scene_object* scn_obj, mat4 view, mat4 proj);
+
 void scn_obj_clean(scene_object* scn_obj);
 
 #endif
