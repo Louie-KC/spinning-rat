@@ -148,13 +148,13 @@ int main(void) {
     load_model("models/teapot.obj", &loaded_models[0].vertex_buffer,
                &loaded_models[0].index_buffer, &loaded_models[0].normals_buffer,
                &loaded_models[0].vertex_buffer_len, &loaded_models[0].index_buffer_len,
-               UTIL_PROCESS_SCALE_MODEL);
+               UTIL_PROCESS_SCALE_MODEL, 1);
     scn_obj_init(&loaded_models[0]);
 
     load_model("models/cube.obj", &loaded_models[1].vertex_buffer,
                &loaded_models[1].index_buffer, &loaded_models[1].normals_buffer,
                &loaded_models[1].vertex_buffer_len, &loaded_models[1].index_buffer_len,
-               0);
+               0, 0);
     scn_obj_init(&loaded_models[1]);
 
     mat4_translate(&loaded_models[0].model_matrix, 0.0f, -0.5f, 0.0f);
@@ -182,6 +182,9 @@ int main(void) {
 
     // Render
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+    glEnable(GL_CULL_FACE);
+
     while (!glfwWindowShouldClose(window)) {
         process_input(window, frame_time);
 

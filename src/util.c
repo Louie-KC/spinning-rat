@@ -105,13 +105,18 @@ int load_model(const char* file_path,
                float** normals_buffer,
                unsigned int *n_vertices,
                unsigned int *n_indices,
-               unsigned int flags) {
+               unsigned int flags,
+               int flip_winding_order) {
 #ifdef UTIL_DEBUG
     printf("load_model file: %s\n", file_path);
 #endif
     int status = UTIL_FAILURE;
 
     unsigned int import_flags = aiProcessPreset_TargetRealtime_Fast;
+    // Check for flip winding order flag
+    if (flip_winding_order) {
+        import_flags = import_flags | aiProcess_FlipWindingOrder;
+    }
     const C_STRUCT aiScene *scene = aiImportFile(file_path, import_flags);
 
     if (scene && scene->mFlags != AI_SCENE_FLAGS_INCOMPLETE) {
@@ -179,7 +184,7 @@ int load_model(const char* file_path,
 #endif
         }
 
-        // process flags
+        // process flags (except for flip winding order)
         struct bounding_box bounds;
         if (flags) {
             bounds = model_bounding_box(*vertex_buffer, *n_vertices);

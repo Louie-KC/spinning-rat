@@ -51,14 +51,15 @@ void normalise_model_scale(float* vertex_buffer, int n_vertices, struct bounding
 // Stores the length of the `vertex_buffer` at `n_vertices`.
 // Stores the length of the `index_buffer` at `n_indices`.
 // Note, the length of the `normals_buffer` is the same as the `vertex_buffer`.
-// Set `flags` with `UTIL_PROCESS...` to perform some processing on model. 0 otherwise. 
+// Set `post_process_flags` with `UTIL_PROCESS...` to perform some processing on model.
+// 0 if none is needed.
 int load_model(const char* file_path,
                float** vertex_buffer,
                unsigned int** index_buffer,
                float** normals_buffer,
                unsigned int *n_vertices,
                unsigned int *n_indices,
-               unsigned int flags);
-
+               unsigned int post_process_flags,
+               int flip_winding_order);
 
 #endif
