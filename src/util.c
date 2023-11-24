@@ -96,6 +96,12 @@ void normalise_model_scale(float* vertex_buffer, int n_vertices, struct bounding
     }
 }
 
+void invert_float_buffer(float* buffer, int len) {
+    for (int i = 0; i < len; i++) {
+        buffer[i] *= -1.0f;
+    }
+}
+
 // TODO: Write own face triangulation code when faces are of an order greater than 3
 // Note: ASSIMP triangulation appears to only work when a single models faces
 //       are ALL of the same order.
@@ -186,7 +192,7 @@ int load_model(const char* file_path,
 
         // process flags (except for flip winding order)
         struct bounding_box bounds;
-        if (flags) {
+        if (flags & (UTIL_PROCESS_CENTRE_MODEL | UTIL_PROCESS_SCALE_MODEL)) {
             bounds = model_bounding_box(*vertex_buffer, *n_vertices);
         }
         if (flags & UTIL_PROCESS_CENTRE_MODEL) {
@@ -194,6 +200,9 @@ int load_model(const char* file_path,
         }
         if (flags & UTIL_PROCESS_SCALE_MODEL) {
             normalise_model_scale(*vertex_buffer, *n_vertices, bounds);
+        }
+        if (flags & UTIL_PROCESS_FLIP_NORMALS) {
+            invert_float_buffer(*normals_buffer, *n_vertices);
         }
 
 #ifdef UTIL_DEBUG

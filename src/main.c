@@ -145,11 +145,10 @@ int main(void) {
 
     // Load model(s)
     scene_object loaded_models[N_MODELS];
-    // Teapot appears to have normals backwards
     load_model("models/teapot.obj", &loaded_models[0].vertex_buffer,
                &loaded_models[0].index_buffer, &loaded_models[0].normals_buffer,
                &loaded_models[0].vertex_buffer_len, &loaded_models[0].index_buffer_len,
-               UTIL_PROCESS_SCALE_MODEL, 1);
+               UTIL_PROCESS_SCALE_MODEL | UTIL_PROCESS_FLIP_NORMALS, 1);
     scn_obj_init(&loaded_models[0]);
 
     load_model("models/cube.obj", &loaded_models[1].vertex_buffer,
@@ -161,12 +160,10 @@ int main(void) {
     mat4_translate(&loaded_models[0].model_matrix, 0.0f, -0.5f, 0.0f);
     mat4_translate(&loaded_models[1].model_matrix, 1.0f, 1.0f, -2.0f);
 
-    // int model_loc = glGetUniformLocation(shaderProgram, "model");
-    // glUniformMatrix4fv(model_loc, 1, GL_TRUE, (GLfloat *) &loaded_models[0].model_matrix.data);
-    
     // Light (point)
     vec3 point_light_pos = vec3_zero();
     point_light_pos.x = -2.0f;
+    point_light_pos.y = 5.0f;
 
     // point_light_pos.y -= 5.0f;
 

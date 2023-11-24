@@ -19,6 +19,7 @@
 
 #define UTIL_PROCESS_CENTRE_MODEL 0b10000000
 #define UTIL_PROCESS_SCALE_MODEL  0b01000000
+#define UTIL_PROCESS_FLIP_NORMALS 0b00100000
 
 struct bounding_box {
     float x_min;
@@ -45,6 +46,8 @@ void centre_model(float *vertex_buffer, int n_vertices, struct bounding_box boun
 // NOTE: This removes any scale/length of unit lengths (metres, feet, etc) from mesh.
 // Assumes `bounds` is the result of model_bounding_box with the same model.
 void normalise_model_scale(float* vertex_buffer, int n_vertices, struct bounding_box bounds);
+
+void invert_float_buffer(float* buffer, int len);
 
 // Reads in a 3D model from `file_path` to the provided buffers.
 // Allocates memory for `vertex_buffer`, `index_buffer` and `normals_buffer`.
