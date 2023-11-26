@@ -162,10 +162,9 @@ int main(void) {
 
     // Light (point)
     vec3 point_light_pos = vec3_zero();
-    point_light_pos.x = -2.0f;
-    point_light_pos.y = 5.0f;
-
-    // point_light_pos.y -= 5.0f;
+    point_light_pos.x = -1.0f;
+    point_light_pos.y = 2.0f;
+    point_light_pos.z = 2.0f;
 
     // Cameras
     view_matrix = mat4_identity();
@@ -194,6 +193,13 @@ int main(void) {
 
         int u_light_pos_loc = glGetUniformLocation(shaderProgram, "u_light_pos");
         glUniform3fv(u_light_pos_loc, 1, (GLfloat *) &point_light_pos);
+
+        // -, view matrix faces backwards
+        int u_view_pos_loc = glGetUniformLocation(shaderProgram, "u_view_pos");
+        glUniform3f(u_view_pos_loc, -view_matrix.data[3], -view_matrix.data[7], -view_matrix.data[11]);
+
+        int u_specularity_loc = glGetUniformLocation(shaderProgram, "u_specularity");
+        glUniform1f(u_specularity_loc, 64.0f);
 
         float rotation_amount = degrees_to_radians(ROTATION_DEGREES_PER_SEC * frame_time);
         for (int i = 0; i < N_MODELS; i++) {
