@@ -4,15 +4,19 @@ uniform vec3 u_light_pos;  // world
 uniform vec3 u_view_pos;   // world
 uniform float u_specularity;
 
+uniform float u_diffuse_intensity;
+uniform float u_ambient_intensity;
+uniform float u_specular_intensity;
+
 in vec3 v_pos;
 in vec3 v_normal;
 
 out vec4 o_colour;
 
 void main() {
-    vec3 diffuse_intensity = vec3(0.8);
-    vec3 ambient_intensity = vec3(0.1);
-    vec3 specular_intensity = vec3(1.0);
+    vec3 diffuse_intensity = vec3(u_diffuse_intensity);
+    vec3 ambient_intensity = vec3(u_ambient_intensity);
+    vec3 specular_intensity = vec3(u_specular_intensity);
 
     vec3 normal = normalize(v_normal);
     vec3 light_direction = normalize(u_light_pos - v_pos);

@@ -150,6 +150,9 @@ int main(void) {
         glUniform3f(u_view_pos_loc, -view_matrix.data[3], -view_matrix.data[7], -view_matrix.data[11]);
 
         shader_set_uniform_float(shader_program, "u_specularity", 32.0f);
+        shader_set_uniform_float(shader_program, "u_diffuse_intensity", 0.8f);
+        shader_set_uniform_float(shader_program, "u_ambient_intensity", 0.1f);
+        shader_set_uniform_float(shader_program, "u_specular_intensity", 0.2f);
 
         float rotation_amount = degrees_to_radians(ROTATION_DEGREES_PER_SEC * frame_time);
         for (int i = 0; i < N_MODELS; i++) {

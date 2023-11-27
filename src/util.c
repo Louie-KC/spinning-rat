@@ -118,7 +118,8 @@ int load_model(const char* file_path,
 #endif
     int status = UTIL_FAILURE;
 
-    unsigned int import_flags = aiProcessPreset_TargetRealtime_Fast;
+    unsigned int import_flags = aiProcess_Triangulate | aiProcess_JoinIdenticalVertices
+                                | aiProcess_GenSmoothNormals | aiProcess_ImproveCacheLocality;
     // Check for flip winding order flag
     if (flip_winding_order) {
         import_flags = import_flags | aiProcess_FlipWindingOrder;
