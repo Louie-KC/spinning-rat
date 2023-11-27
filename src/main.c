@@ -11,6 +11,7 @@
 #include "vector.h"
 #include "util.h"
 #include "scene-object.h"
+#include "shader.h"
 
 #define INFO_BUFFER_SIZE 512
 #define SHADER_SOURCE_MAX_LEN 4096
@@ -25,36 +26,6 @@ int screen_height = 480;
 // Camera
 mat4 projection_matrix;
 mat4 view_matrix;
-
-int compileShader(unsigned int* shader, int type, const char *source) {
-    int status;
-    char infoLogBuffer[INFO_BUFFER_SIZE];
-    *shader = glCreateShader(type);
-    glShaderSource(*shader, 1, &source, NULL);
-    glCompileShader(*shader);
-    glGetShaderiv(*shader, GL_COMPILE_STATUS, &status);
-    if (!status) {
-        glGetShaderInfoLog(*shader, INFO_BUFFER_SIZE, NULL, infoLogBuffer);
-        printf("Shader compile failure: \n%s\n%s\n", source, infoLogBuffer);
-    }
-    return status;
-}
-
-// return: shader program
-unsigned int linkShaders(unsigned int vertexShader, unsigned int fragmentShader) {
-    int success = 0;
-    char infoLogBuffer[INFO_BUFFER_SIZE];
-    unsigned int program = glCreateProgram();
-    glAttachShader(program, vertexShader);
-    glAttachShader(program, fragmentShader);
-    glLinkProgram(program);
-    glGetProgramiv(program, GL_LINK_STATUS, &success);
-    if (!success) {
-        glGetProgramInfoLog(program, INFO_BUFFER_SIZE, NULL, infoLogBuffer);
-        printf("Shader link failure - %s\n", infoLogBuffer); 
-    }
-    return program;
-}
 
 void process_input(GLFWwindow* window, double frame_time) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE)) {
@@ -121,27 +92,8 @@ int main(void) {
     }
 
     // read and compile shaders
-    unsigned int vertexShader = 0;
-    unsigned int fragShader = 0;
-
-    char vertexShaderSource[SHADER_SOURCE_MAX_LEN];
-    char fragmentShaderSource[SHADER_SOURCE_MAX_LEN];
-    
-    if (!read_file_source("src/shaders/shaded-vertex.glsl", vertexShaderSource, SHADER_SOURCE_MAX_LEN)) {
-        printf("failed to read vertex shader source\n");           
-    }
-    if (!read_file_source("src/shaders/shaded-fragment.glsl", fragmentShaderSource, SHADER_SOURCE_MAX_LEN)) {
-        printf("failed to read fragment shader source\n");
-    }
-
-    compileShader(&vertexShader, GL_VERTEX_SHADER, vertexShaderSource);
-    compileShader(&fragShader, GL_FRAGMENT_SHADER, fragmentShaderSource);
-
-    // link shaders
-    unsigned int shaderProgram = linkShaders(vertexShader, fragShader);
-
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragShader);
+    shader_program shader_program = shader_create_program("src/shaders/shaded-vertex.glsl",
+                                                          "src/shaders/shaded-fragment.glsl");
 
     // Load model(s)
     scene_object loaded_models[N_MODELS];
@@ -189,17 +141,15 @@ int main(void) {
         glClearColor(0.2f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        glUseProgram(shaderProgram);
+        glUseProgram(shader_program);
 
-        int u_light_pos_loc = glGetUniformLocation(shaderProgram, "u_light_pos");
-        glUniform3fv(u_light_pos_loc, 1, (GLfloat *) &point_light_pos);
+        shader_set_uniform_vec3(shader_program, "u_light_pos", point_light_pos);
 
         // -, view matrix faces backwards
-        int u_view_pos_loc = glGetUniformLocation(shaderProgram, "u_view_pos");
+        int u_view_pos_loc = glGetUniformLocation(shader_program, "u_view_pos");
         glUniform3f(u_view_pos_loc, -view_matrix.data[3], -view_matrix.data[7], -view_matrix.data[11]);
 
-        int u_specularity_loc = glGetUniformLocation(shaderProgram, "u_specularity");
-        glUniform1f(u_specularity_loc, 64.0f);
+        shader_set_uniform_float(shader_program, "u_specularity", 32.0f);
 
         float rotation_amount = degrees_to_radians(ROTATION_DEGREES_PER_SEC * frame_time);
         for (int i = 0; i < N_MODELS; i++) {
@@ -207,12 +157,10 @@ int main(void) {
             mat4_rotate_y(&loaded_models[i].model_matrix, rotation_amount);
 
             // Calculate and pass in mvp matrix
-            int u_mvp_loc = glGetUniformLocation(shaderProgram, "u_mvp");
             mat4 mvp = scn_obj_mvp(&loaded_models[i], view_matrix, projection_matrix);
-            glUniformMatrix4fv(u_mvp_loc, 1, GL_TRUE, (GLfloat *) &mvp);
+            shader_set_uniform_mat4(shader_program, "u_mvp", mvp);
 
-            int u_model_loc = glGetUniformLocation(shaderProgram, "u_model");
-            glUniformMatrix4fv(u_model_loc, 1, GL_TRUE, (GLfloat *) &loaded_models[i].model_matrix.data);
+            shader_set_uniform_mat4(shader_program, "u_model", loaded_models[i].model_matrix);
 
             // Draw
             glBindVertexArray(loaded_models[i].VAO);
@@ -230,7 +178,7 @@ int main(void) {
         last_frame = glfwGetTime();
     }
 
-    glDeleteProgram(shaderProgram);
+    glDeleteProgram(shader_program);
     for (int i = 0; i < N_MODELS; i++) {
         scn_obj_clean(&loaded_models[i]);
     }
