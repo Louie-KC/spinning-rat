@@ -97,17 +97,10 @@ int main(void) {
 
     // Load model(s)
     scene_object loaded_models[N_MODELS];
-    load_model("models/teapot.obj", &loaded_models[0].vertex_buffer,
-               &loaded_models[0].index_buffer, &loaded_models[0].normals_buffer,
-               &loaded_models[0].vertex_buffer_len, &loaded_models[0].index_buffer_len,
-               UTIL_PROCESS_SCALE_MODEL | UTIL_PROCESS_FLIP_NORMALS, 1);
-    scn_obj_init(&loaded_models[0]);
-
-    load_model("models/cube.obj", &loaded_models[1].vertex_buffer,
-               &loaded_models[1].index_buffer, &loaded_models[1].normals_buffer,
-               &loaded_models[1].vertex_buffer_len, &loaded_models[1].index_buffer_len,
-               0, 0);
-    scn_obj_init(&loaded_models[1]);
+    loaded_models[0] = scn_obj_load("models/teapot.obj", SCN_OBJ_IMPORT_UNIT_RESCALE
+                                                         | SCN_OBJ_IMPORT_FLIP_NORMALS
+                                                         | SCN_OBJ_IMPORT_FLIP_WINDING_ORDER);
+    loaded_models[1] = scn_obj_load("models/cube.obj", 0);
 
     mat4_translate(&loaded_models[0].model_matrix, 0.0f, -0.5f, 0.0f);
     mat4_translate(&loaded_models[1].model_matrix, 1.0f, 1.0f, -2.0f);
