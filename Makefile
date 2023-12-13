@@ -6,7 +6,7 @@ FRAMEWORKS = -framework Cocoa -framework OpenGL
 SRC = src/main.c
 
 all:
-	${CC} ${SRC} ${INC} ${FRAMEWORKS} ${LOC_LIB}
+	${CC} ${SRC} ${INC} ${FRAMEWORKS} ${LOC_LIB} -g
 
 clean:
 	rm -r ./a.out
