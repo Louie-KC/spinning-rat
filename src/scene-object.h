@@ -8,6 +8,10 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
+#define STB_IMAGE_STATIC
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
 #include "matrix.h"
 #include "vector.h"
 #include "util.h"
@@ -27,11 +31,11 @@ typedef struct scene_object {
     unsigned int VBO;
     unsigned int VAO;
     unsigned int EBO;
+    unsigned int texture;
+    unsigned int shader_prog;
     vec3 *vertex_buffer;
     vec3 *normal_buffer;
-    // float* vertex_buffer;
-    // float* normals_buffer;
-    // unsigned int* index_buffer;
+    vec2 *tex_coord_buffer;
     face *index_buffer;
     unsigned int vertex_buffer_len;
     unsigned int index_buffer_len;
@@ -54,6 +58,10 @@ void normalise_model_scale(vec3* vertex_buffer, int n_vertices, struct bounding_
 // Invokes deletion methods on the scene objects buffers objects prior
 // to generating and binding new buffers.
 void scn_obj_set_buffers(scene_object* scn_obj);
+
+// Creates a texture buffer for the scene object, sets tex parameters, then loads the
+// texture at the specified path, binding it to the scene object.
+void scn_obj_load_texture(scene_object* scn_obj, char* texture_path);
 
 // Calculate the mvp matrix for a scene object
 mat4 scn_obj_mvp(scene_object* scn_obj, mat4 view, mat4 proj);

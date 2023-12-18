@@ -37,9 +37,10 @@ struct scene_object scn_obj_load(const char* file_path, unsigned int flags) {
         }
         object.index_buffer_len *= 3;  // 3 indices are used to make up a face
 
-        object.vertex_buffer = malloc(object.vertex_buffer_len * sizeof(vec3));
-        object.normal_buffer = malloc(object.vertex_buffer_len * sizeof(vec3));
-        object.index_buffer  = malloc(object.index_buffer_len  * sizeof(face));
+        object.vertex_buffer    = malloc(object.vertex_buffer_len * sizeof(vec3));
+        object.normal_buffer    = malloc(object.vertex_buffer_len * sizeof(vec3));
+        object.tex_coord_buffer = malloc(object.vertex_buffer_len * sizeof(vec2));
+        object.index_buffer     = malloc(object.index_buffer_len  * sizeof(face));
 
         vi = 0;
         fi = 0;
@@ -56,6 +57,11 @@ struct scene_object scn_obj_load(const char* file_path, unsigned int flags) {
                 object.normal_buffer[vi].x = mesh.mNormals[cur_vi].x;
                 object.normal_buffer[vi].y = mesh.mNormals[cur_vi].y;
                 object.normal_buffer[vi].z = mesh.mNormals[cur_vi].z;
+
+                if (mesh.mTextureCoords[0]) {
+                    object.tex_coord_buffer[vi].x = mesh.mTextureCoords[0][cur_vi].x;
+                    object.tex_coord_buffer[vi].y = mesh.mTextureCoords[0][cur_vi].y;
+                }
                 
                 cur_vi++;
                 vi++;
@@ -111,6 +117,10 @@ struct scene_object scn_obj_load(const char* file_path, unsigned int flags) {
         for (int i = 0; i < object.vertex_buffer_len; ++i) {
             printf("vn %f %f %f\n", object.normal_buffer[i].x,
                     object.normal_buffer[i].y, object.normal_buffer[i].z);
+        }
+        printf("texture coords for face\n");
+        for (int i = 0; i < object.vertex_buffer_len; ++i) {
+            printf("%f, %f\n", object.tex_coord_buffer[i].x, object.tex_coord_buffer[i].y);
         }
         for (int i = 0; i < object.index_buffer_len / 3; ++i) {
             printf("f %u %u %u\n", object.index_buffer[i].indices[0],
@@ -174,11 +184,15 @@ void scn_obj_set_buffers(scene_object* scn_obj) {
     glBindVertexArray(scn_obj->VAO);
     glBindBuffer(GL_ARRAY_BUFFER, scn_obj->VBO);
     int vertex_buffer_size = sizeof(vec3) * scn_obj->vertex_buffer_len;
+    int texcoord_buffer_size = sizeof(vec2) * scn_obj->vertex_buffer_len;
     // allocate buffer for BOTH vertices and normals. Then load first half with vertices
     // and second half with normals (batching).
-    glBufferData(GL_ARRAY_BUFFER, vertex_buffer_size * 2, NULL, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, vertex_buffer_size * 2 + texcoord_buffer_size,
+                NULL, GL_STATIC_DRAW);
     glBufferSubData(GL_ARRAY_BUFFER, 0, vertex_buffer_size, scn_obj->vertex_buffer);
     glBufferSubData(GL_ARRAY_BUFFER, vertex_buffer_size, vertex_buffer_size, scn_obj->normal_buffer);
+    glBufferSubData(GL_ARRAY_BUFFER, vertex_buffer_size * 2,
+                    texcoord_buffer_size, scn_obj->tex_coord_buffer);
 
 #ifdef SCN_OBJ_DEBUG
     vec3 *buffer = malloc(vertex_buffer_size * 2);
@@ -199,6 +213,9 @@ void scn_obj_set_buffers(scene_object* scn_obj) {
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(vec3), (void*) (vertex_buffer_size+0L));
 
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(vec2), (void*) (vertex_buffer_size*2L));
+
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, scn_obj->EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(face) * scn_obj->index_buffer_len,
                  scn_obj->index_buffer, GL_STATIC_DRAW);
@@ -216,6 +233,32 @@ void scn_obj_set_buffers(scene_object* scn_obj) {
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);  // release VAO
+}
+
+void scn_obj_load_texture(scene_object* scn_obj, char* texture_path) {
+#ifdef SCN_OBJ_DEBUG
+    printf("scn_obj_load_texture texture_path: %s\n", texture_path);
+#endif
+    glGenTextures(1, &scn_obj->texture);
+    glBindTexture(GL_TEXTURE_2D, scn_obj->texture);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    int width, height, n_channels;
+    unsigned char *data = stbi_load(texture_path, &width, &height, &n_channels, 0);
+#ifdef SCN_OBJ_DEBUG
+    printf("width: %d, height: %d, n_channels: %d\n", width, height, n_channels);
+#endif
+    if (data) {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+    } else {
+        printf("Failed to load texture: %s\n", texture_path);
+    }
+
+    stbi_image_free(data);
 }
 
 mat4 scn_obj_mvp(scene_object* scn_obj, mat4 view, mat4 proj) {

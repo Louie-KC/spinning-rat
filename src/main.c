@@ -16,7 +16,7 @@
 #define INFO_BUFFER_SIZE 512
 #define SHADER_SOURCE_MAX_LEN 4096
 
-#define ROTATION_DEGREES_PER_SEC 90.0f
+#define ROTATION_DEGREES_PER_SEC 30.0f
 
 #define N_MODELS 2
 
@@ -92,8 +92,10 @@ int main(void) {
     }
 
     // read and compile shaders
-    shader_program shader_program = shader_create_program("src/shaders/shaded-vertex.glsl",
-                                                          "src/shaders/shaded-fragment.glsl");
+    // shader_program shader_program = shader_create_program("src/shaders/shaded-vertex.glsl",
+    //                                                       "src/shaders/shaded-fragment.glsl");
+    // shader_program shader_program = shader_create_program("src/shaders/shaded-textured-vertex.glsl",
+    //                                                       "src/shaders/shaded-textured-fragment.glsl");
 
     // Load model(s)
     scene_object loaded_models[N_MODELS];
@@ -101,9 +103,15 @@ int main(void) {
                                                          | SCN_OBJ_IMPORT_FLIP_NORMALS
                                                          | SCN_OBJ_IMPORT_FLIP_WINDING_ORDER);
     loaded_models[1] = scn_obj_load("models/cube.obj", 0);
+    scn_obj_load_texture(&loaded_models[1], "models/container.jpg");
 
     mat4_translate(&loaded_models[0].model_matrix, 0.0f, -0.5f, 0.0f);
     mat4_translate(&loaded_models[1].model_matrix, 1.0f, 1.0f, -2.0f);
+
+    loaded_models[0].shader_prog = shader_create_program("src/shaders/shaded-vertex.glsl",
+                                                         "src/shaders/shaded-fragment.glsl");
+    loaded_models[1].shader_prog = shader_create_program("src/shaders/shaded-textured-vertex.glsl",
+                                                         "src/shaders/shaded-textured-fragment.glsl");
 
     // Light (point)
     vec3 point_light_pos = vec3_zero();
@@ -134,31 +142,33 @@ int main(void) {
         glClearColor(0.2f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        glUseProgram(shader_program);
-
-        shader_set_uniform_vec3(shader_program, "u_light_pos", point_light_pos);
-
-        // -, view matrix faces backwards
-        int u_view_pos_loc = glGetUniformLocation(shader_program, "u_view_pos");
-        glUniform3f(u_view_pos_loc, -view_matrix.data[3], -view_matrix.data[7], -view_matrix.data[11]);
-
-        shader_set_uniform_float(shader_program, "u_specularity", 32.0f);
-        shader_set_uniform_float(shader_program, "u_diffuse_intensity", 0.8f);
-        shader_set_uniform_float(shader_program, "u_ambient_intensity", 0.1f);
-        shader_set_uniform_float(shader_program, "u_specular_intensity", 0.2f);
-
         float rotation_amount = degrees_to_radians(ROTATION_DEGREES_PER_SEC * frame_time);
         for (int i = 0; i < N_MODELS; i++) {
+            shader_program shader = loaded_models[i].shader_prog;
+            glUseProgram(shader);
+
+            shader_set_uniform_vec3(shader, "u_light_pos", point_light_pos);
+
+            // -, view matrix faces backwards
+            int u_view_pos_loc = glGetUniformLocation(shader, "u_view_pos");
+            glUniform3f(u_view_pos_loc, -view_matrix.data[3], -view_matrix.data[7], -view_matrix.data[11]);
+
+            shader_set_uniform_float(shader, "u_specularity", 32.0f);
+            shader_set_uniform_float(shader, "u_diffuse_intensity", 0.8f);
+            shader_set_uniform_float(shader, "u_ambient_intensity", 0.1f);
+            shader_set_uniform_float(shader, "u_specular_intensity", 0.2f);
+
             // transform - spin the loaded model
             mat4_rotate_y(&loaded_models[i].model_matrix, rotation_amount);
 
             // Calculate and pass in mvp matrix
             mat4 mvp = scn_obj_mvp(&loaded_models[i], view_matrix, projection_matrix);
-            shader_set_uniform_mat4(shader_program, "u_mvp", mvp);
+            shader_set_uniform_mat4(shader, "u_mvp", mvp);
 
-            shader_set_uniform_mat4(shader_program, "u_model", loaded_models[i].model_matrix);
+            shader_set_uniform_mat4(shader, "u_model", loaded_models[i].model_matrix);
 
             // Draw
+            glBindTexture(GL_TEXTURE_2D, loaded_models[i].texture);
             glBindVertexArray(loaded_models[i].VAO);
             glDrawElements(GL_TRIANGLES, loaded_models[i].index_buffer_len, GL_UNSIGNED_INT, 0);
             // glDrawArrays(GL_TRIANGLES, 0, 3);
@@ -174,8 +184,9 @@ int main(void) {
         last_frame = glfwGetTime();
     }
 
-    glDeleteProgram(shader_program);
+    // glDeleteProgram(shader_program);
     for (int i = 0; i < N_MODELS; i++) {
+        glDeleteProgram(loaded_models[i].shader_prog);
         scn_obj_clean(&loaded_models[i]);
     }
 
