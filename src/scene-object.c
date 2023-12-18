@@ -9,6 +9,8 @@ struct scene_object scn_obj_load(const char* file_path, unsigned int flags) {
 #endif
 
     scene_object object;
+    object.texture = 0;  // 0 is the (silent) ignore value for OpenGL
+    object.shader_prog = 0;
     object.model_matrix = mat4_identity();
     object.parent = NULL;
 
@@ -236,6 +238,7 @@ void scn_obj_set_buffers(scene_object* scn_obj) {
 }
 
 void scn_obj_load_texture(scene_object* scn_obj, char* texture_path) {
+    glDeleteTextures(1, &scn_obj->texture);
 #ifdef SCN_OBJ_DEBUG
     printf("scn_obj_load_texture texture_path: %s\n", texture_path);
 #endif
@@ -273,16 +276,25 @@ void scn_obj_clean(scene_object* scn_obj) {
         return;
     }
 
-    // Clear vertex and index buffers
+    // Clear mesh buffers
     if (!scn_obj->vertex_buffer) {
         free(scn_obj->vertex_buffer);
+    }
+    if (!scn_obj->normal_buffer) {
+        free(scn_obj->normal_buffer);
+    }
+    if (!scn_obj->tex_coord_buffer) {
+        free(scn_obj->tex_coord_buffer);
     }
     if (!scn_obj->index_buffer) {
         free(scn_obj->index_buffer);
     }
 
+    glDeleteProgram(scn_obj->shader_prog);
+
     // Clear OpenGL buffers
     glDeleteVertexArrays(1, &scn_obj->VAO);
     glDeleteBuffers(1, &scn_obj->VBO);
     glDeleteBuffers(1, &scn_obj->EBO);
+    glDeleteTextures(1, &scn_obj->texture);
 }
