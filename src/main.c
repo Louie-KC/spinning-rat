@@ -18,7 +18,7 @@
 
 #define ROTATION_DEGREES_PER_SEC 20.0f
 
-#define N_MODELS 2
+#define N_MODELS 1
 
 int screen_width = 640;
 int screen_height = 480;
@@ -75,7 +75,7 @@ int main(void) {
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-    window = glfwCreateWindow(screen_width, screen_height, "Hello World", NULL, NULL);
+    window = glfwCreateWindow(screen_width, screen_height, "Hello Rat", NULL, NULL);
     if (!window) {
         printf("glfwCreateWindow failure\n");
         glfwTerminate();
@@ -93,12 +93,10 @@ int main(void) {
 
     // Load model(s)
     scene_object loaded_models[N_MODELS];
-    loaded_models[0] = scn_obj_load("models/teapot.obj", SCN_OBJ_IMPORT_UNIT_RESCALE
-                                                         | SCN_OBJ_IMPORT_FLIP_NORMALS
-                                                         | SCN_OBJ_IMPORT_FLIP_WINDING_ORDER);
-    loaded_models[1] = scn_obj_load("models/cube.obj", 0);
-    scn_obj_load_texture(&loaded_models[1], "models/container.jpg");
-    
+    loaded_models[0] = scn_obj_load("models/potkan.obj", SCN_OBJ_IMPORT_UNIT_RESCALE
+                                                          | SCN_OBJ_IMPORT_CENTRED);
+    scn_obj_load_texture(&loaded_models[0], "models/potkan.png");
+
     // Create pivot(s) for model(s)
     scene_object pivots[N_MODELS];
     for (int i = 0; i < N_MODELS; i++) {
@@ -106,14 +104,11 @@ int main(void) {
         loaded_models[i].parent = &pivots[i];
     }
 
-    // mat4_translate(&loaded_models[0].model_matrix, 0.0f, -0.5f, 0.0f);
-    // mat4_translate(&loaded_models[1].model_matrix, 1.0f, 1.0f, -2.0f);
-    mat4_translate(&pivots[0].model_matrix, 0.0f, -0.5f, 0.0f);
-    mat4_translate(&pivots[1].model_matrix, 1.0f, 1.0f, -2.0f);
+    mat4_rotate_x(&loaded_models[0].model_matrix, degrees_to_radians(-90.0f));
+    mat4_translate(&loaded_models[0].model_matrix, -0.3845f, 0.0f, 0.0f);
+    mat4_translate(&pivots[0].model_matrix, 0.0f, -1.0f, 0.0f);
 
-    loaded_models[0].shader_prog = shader_create_program("src/shaders/shaded-vertex.glsl",
-                                                         "src/shaders/shaded-fragment.glsl");
-    loaded_models[1].shader_prog = shader_create_program("src/shaders/shaded-textured-vertex.glsl",
+    loaded_models[0].shader_prog = shader_create_program("src/shaders/shaded-textured-vertex.glsl",
                                                          "src/shaders/shaded-textured-fragment.glsl");
 
     // Light (point)
@@ -124,7 +119,7 @@ int main(void) {
 
     // Cameras
     view_matrix = mat4_identity();
-    mat4_translate(&view_matrix, 0.0f, 0.0f, -3.0f);
+    mat4_translate(&view_matrix, 0.0f, 0.0f, -2.0f);
 
     projection_matrix = mat4_zero();
     camera_persp(&projection_matrix, degrees_to_radians(45.0f), (float) screen_width / (float) screen_height, 0.1f, 100.0f);
@@ -168,7 +163,8 @@ int main(void) {
             mat4 mvp = scn_obj_mvp(&loaded_models[i], view_matrix, projection_matrix);
             shader_set_uniform_mat4(shader, "u_mvp", mvp);
 
-            shader_set_uniform_mat4(shader, "u_model", loaded_models[i].model_matrix);
+            mat4 model_to_world = scn_obj_world_mat(&loaded_models[i]);
+            shader_set_uniform_mat4(shader, "u_model", model_to_world);
 
             // Draw
             glBindTexture(GL_TEXTURE_2D, loaded_models[i].texture);
@@ -187,10 +183,10 @@ int main(void) {
         last_frame = glfwGetTime();
     }
 
-    // glDeleteProgram(shader_program);
     for (int i = 0; i < N_MODELS; i++) {
         glDeleteProgram(loaded_models[i].shader_prog);
         scn_obj_clean(&loaded_models[i]);
+        scn_obj_clean(&pivots[i]);
     }
 
     printf("exiting\n");

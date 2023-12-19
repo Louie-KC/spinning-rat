@@ -269,7 +269,11 @@ void scn_obj_load_texture(scene_object* scn_obj, char* texture_path) {
     printf("width: %d, height: %d, n_channels: %d\n", width, height, n_channels);
 #endif
     if (data) {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+        unsigned int format = GL_RGB;
+        if (n_channels == 4) {
+            format = GL_RGBA;
+        }
+        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
     } else {
         printf("Failed to load texture: %s\n", texture_path);
@@ -279,13 +283,14 @@ void scn_obj_load_texture(scene_object* scn_obj, char* texture_path) {
 }
 
 mat4 scn_obj_world_mat(scene_object* scn_obj) {
-    mat4 world = mat4_identity();
+    mat4 model_to_world = mat4_identity();
     scene_object* parent = scn_obj->parent;
     while (parent) {
-        mat4_multiply(&world, &parent->model_matrix);
+        mat4_multiply(&model_to_world, &parent->model_matrix);
         parent = parent->parent;
     }
-    return world;
+    mat4_multiply(&model_to_world, &scn_obj->model_matrix);
+    return model_to_world;
 }
 
 mat4 scn_obj_mvp(scene_object* scn_obj, mat4 view, mat4 proj) {
@@ -293,7 +298,6 @@ mat4 scn_obj_mvp(scene_object* scn_obj, mat4 view, mat4 proj) {
     mat4_multiply(&result, &view);
     mat4 world = scn_obj_world_mat(scn_obj);
     mat4_multiply(&result, &world);
-    mat4_multiply(&result, &scn_obj->model_matrix);
     return result;
 }
 
