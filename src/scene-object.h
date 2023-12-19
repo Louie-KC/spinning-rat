@@ -43,6 +43,12 @@ typedef struct scene_object {
     struct scene_object* parent;
 } scene_object;
 
+// Creates an empty scene object to be used as a scene graph pivot.
+struct scene_object scn_obj_pivot();
+
+// Creates a scene object of the model specified by the `file_path` parameter.
+// Performs processes on import which can be specified in the `flags`
+// parameter using the `SCN_OBJ_IMPORT_...` macros/defines.
 struct scene_object scn_obj_load(const char* file_path, unsigned int flags);
 
 // Shift all vertices of a model/mesh to be centered at [0, 0, 0].
@@ -62,6 +68,9 @@ void scn_obj_set_buffers(scene_object* scn_obj);
 // Creates a texture buffer for the scene object, sets tex parameters, then loads the
 // texture at the specified path, binding it to the scene object.
 void scn_obj_load_texture(scene_object* scn_obj, char* texture_path);
+
+// Calculate model to world matrix
+mat4 scn_obj_world_mat(scene_object* scn_obj);
 
 // Calculate the mvp matrix for a scene object
 mat4 scn_obj_mvp(scene_object* scn_obj, mat4 view, mat4 proj);

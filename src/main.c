@@ -16,7 +16,7 @@
 #define INFO_BUFFER_SIZE 512
 #define SHADER_SOURCE_MAX_LEN 4096
 
-#define ROTATION_DEGREES_PER_SEC 30.0f
+#define ROTATION_DEGREES_PER_SEC 20.0f
 
 #define N_MODELS 2
 
@@ -91,12 +91,6 @@ int main(void) {
         return -1;
     }
 
-    // read and compile shaders
-    // shader_program shader_program = shader_create_program("src/shaders/shaded-vertex.glsl",
-    //                                                       "src/shaders/shaded-fragment.glsl");
-    // shader_program shader_program = shader_create_program("src/shaders/shaded-textured-vertex.glsl",
-    //                                                       "src/shaders/shaded-textured-fragment.glsl");
-
     // Load model(s)
     scene_object loaded_models[N_MODELS];
     loaded_models[0] = scn_obj_load("models/teapot.obj", SCN_OBJ_IMPORT_UNIT_RESCALE
@@ -104,9 +98,18 @@ int main(void) {
                                                          | SCN_OBJ_IMPORT_FLIP_WINDING_ORDER);
     loaded_models[1] = scn_obj_load("models/cube.obj", 0);
     scn_obj_load_texture(&loaded_models[1], "models/container.jpg");
+    
+    // Create pivot(s) for model(s)
+    scene_object pivots[N_MODELS];
+    for (int i = 0; i < N_MODELS; i++) {
+        pivots[i] = scn_obj_pivot();
+        loaded_models[i].parent = &pivots[i];
+    }
 
-    mat4_translate(&loaded_models[0].model_matrix, 0.0f, -0.5f, 0.0f);
-    mat4_translate(&loaded_models[1].model_matrix, 1.0f, 1.0f, -2.0f);
+    // mat4_translate(&loaded_models[0].model_matrix, 0.0f, -0.5f, 0.0f);
+    // mat4_translate(&loaded_models[1].model_matrix, 1.0f, 1.0f, -2.0f);
+    mat4_translate(&pivots[0].model_matrix, 0.0f, -0.5f, 0.0f);
+    mat4_translate(&pivots[1].model_matrix, 1.0f, 1.0f, -2.0f);
 
     loaded_models[0].shader_prog = shader_create_program("src/shaders/shaded-vertex.glsl",
                                                          "src/shaders/shaded-fragment.glsl");
@@ -158,8 +161,8 @@ int main(void) {
             shader_set_uniform_float(shader, "u_ambient_intensity", 0.1f);
             shader_set_uniform_float(shader, "u_specular_intensity", 0.2f);
 
-            // transform - spin the loaded model
-            mat4_rotate_y(&loaded_models[i].model_matrix, rotation_amount);
+            // transform - spin pivot(s) of the loaded model(s)
+            mat4_rotate_y(&pivots[i].model_matrix, rotation_amount);
 
             // Calculate and pass in mvp matrix
             mat4 mvp = scn_obj_mvp(&loaded_models[i], view_matrix, projection_matrix);

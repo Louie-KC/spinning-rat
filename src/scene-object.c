@@ -1,5 +1,19 @@
 #include "scene-object.h"
 
+struct scene_object scn_obj_pivot() {
+    scene_object object;
+
+    object.texture = 0;
+    object.shader_prog = 0;
+    object.model_matrix = mat4_identity();
+    object.parent = NULL;
+
+    object.vertex_buffer_len = 0;
+    object.index_buffer_len = 0;
+    
+    return object;
+}
+
 // TODO: Write own face triangulation code when faces are of an order greater than 3
 // Note: ASSIMP triangulation appears to only work when a single models faces
 //       are ALL of the same order.
@@ -264,9 +278,21 @@ void scn_obj_load_texture(scene_object* scn_obj, char* texture_path) {
     stbi_image_free(data);
 }
 
+mat4 scn_obj_world_mat(scene_object* scn_obj) {
+    mat4 world = mat4_identity();
+    scene_object* parent = scn_obj->parent;
+    while (parent) {
+        mat4_multiply(&world, &parent->model_matrix);
+        parent = parent->parent;
+    }
+    return world;
+}
+
 mat4 scn_obj_mvp(scene_object* scn_obj, mat4 view, mat4 proj) {
     mat4 result = proj;
     mat4_multiply(&result, &view);
+    mat4 world = scn_obj_world_mat(scn_obj);
+    mat4_multiply(&result, &world);
     mat4_multiply(&result, &scn_obj->model_matrix);
     return result;
 }
