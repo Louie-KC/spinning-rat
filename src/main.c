@@ -112,10 +112,17 @@ int main(void) {
                                                          "src/shaders/shaded-textured-fragment.glsl");
 
     // Light (point)
-    vec3 point_light_pos = vec3_zero();
-    point_light_pos.x = -1.0f;
-    point_light_pos.y = 2.0f;
-    point_light_pos.z = 2.0f;
+    // vec4 point_light_pos = vec4_zero();
+    // point_light_pos.x = -1.0f;
+    // point_light_pos.y = 2.0f;
+    // point_light_pos.z = 2.0f;
+    // point_light_pos.w = 1.0f;
+
+    // Light (directional source vector)
+    vec4 directional_light = vec4_zero();
+    directional_light.x = -0.125f;
+    directional_light.y = 1.0f;
+    directional_light.z = 1.0f;
 
     // Cameras
     view_matrix = mat4_identity();
@@ -145,13 +152,14 @@ int main(void) {
             shader_program shader = loaded_models[i].shader_prog;
             glUseProgram(shader);
 
-            shader_set_uniform_vec3(shader, "u_light_pos", point_light_pos);
+            // shader_set_uniform_vec4(shader, "u_light_pos", point_light_pos);
+            shader_set_uniform_vec4(shader, "u_light_pos", directional_light);
 
             // -, view matrix faces backwards
             int u_view_pos_loc = glGetUniformLocation(shader, "u_view_pos");
             glUniform3f(u_view_pos_loc, -view_matrix.data[3], -view_matrix.data[7], -view_matrix.data[11]);
 
-            shader_set_uniform_float(shader, "u_specularity", 32.0f);
+            shader_set_uniform_float(shader, "u_specularity", 4.0f);
             shader_set_uniform_float(shader, "u_diffuse_intensity", 0.8f);
             shader_set_uniform_float(shader, "u_ambient_intensity", 0.1f);
             shader_set_uniform_float(shader, "u_specular_intensity", 0.2f);

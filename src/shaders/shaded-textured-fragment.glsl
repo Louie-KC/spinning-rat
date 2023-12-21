@@ -1,6 +1,6 @@
 #version 410 core
 
-uniform vec3 u_light_pos;  // world
+uniform vec4 u_light_pos;  // (x, y, z, 1): world pos | (x, y, z, 0): (normalised) source vector
 uniform vec3 u_view_pos;   // world
 uniform float u_specularity;
 
@@ -10,8 +10,8 @@ uniform float u_specular_intensity;
 
 uniform sampler2D u_texture;
 
-in vec3 v_pos;
-in vec3 v_normal;
+in vec3 v_pos;       // world
+in vec3 v_normal;    // world
 in vec2 v_texcoord;  // UV
 
 out vec4 o_colour;
@@ -22,7 +22,16 @@ void main() {
     vec3 specular_intensity = vec3(u_specular_intensity);
 
     vec3 normal = normalize(v_normal);
-    vec3 light_direction = normalize(u_light_pos - v_pos);
+
+    vec3 light_direction;
+    if (u_light_pos[3] == 0) {
+        // directional light
+        light_direction = u_light_pos.xyz;
+    } else {
+        // point light
+        light_direction = normalize(u_light_pos.xyz - v_pos);
+    }
+
     vec3 view_direction = normalize(u_view_pos - v_pos);  // perspective
 
     float dot_product = dot(light_direction, normal);
