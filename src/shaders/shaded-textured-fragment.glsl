@@ -8,7 +8,8 @@ uniform float u_diffuse_intensity;
 uniform float u_ambient_intensity;
 uniform float u_specular_intensity;
 
-uniform sampler2D u_texture;
+uniform sampler2D u_diffuse_texture;
+uniform sampler2D u_specular_texture;
 
 in vec3 v_pos;       // world
 in vec3 v_normal;    // world
@@ -42,12 +43,13 @@ void main() {
     if (dot_product > 0) {
         vec3 reflection = reflect(-light_direction, normal);
         float phong_angle = pow(max(0, dot(reflection, view_direction)), u_specularity);
-        specular = specular_intensity * phong_angle;
+        vec3 specular_tex_value = vec3(texture(u_specular_texture, v_texcoord));
+        specular = specular_intensity * phong_angle * specular_tex_value;
     }
 
     vec3 intensity = ambient_intensity + diffuse + specular;
 
-    o_colour = texture(u_texture, v_texcoord) * vec4(intensity, 1);
+    o_colour = texture(u_diffuse_texture, v_texcoord) * vec4(intensity, 1);
     // o_colour = vec4(intensity, 1);
     // o_colour = vec4(specular, 1);
     // o_colour = vec4(v_normal, 1);

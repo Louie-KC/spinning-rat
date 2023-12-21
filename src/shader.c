@@ -83,3 +83,8 @@ void shader_set_uniform_mat4(shader_program program, const char* name, mat4 mat)
     int loc = glGetUniformLocation(program, name);
     glUniformMatrix4fv(loc, 1, GL_TRUE, (GLfloat *) &mat.data);
 }
+
+void shader_set_uniform_tex_i(shader_program program, const char* name, unsigned int tex_id) {
+    int loc = glGetUniformLocation(program, name);
+    glUniform1i(loc, tex_id);
+}

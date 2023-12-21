@@ -3,7 +3,8 @@
 struct scene_object scn_obj_pivot() {
     scene_object object;
 
-    object.texture = 0;
+    object.diffuse_texture = 0;
+    object.specular_texture = 0;
     object.shader_prog = 0;
     object.model_matrix = mat4_identity();
     object.parent = NULL;
@@ -23,7 +24,8 @@ struct scene_object scn_obj_load(const char* file_path, unsigned int flags) {
 #endif
 
     scene_object object;
-    object.texture = 0;  // 0 is the (silent) ignore value for OpenGL
+    object.diffuse_texture = 0;  // 0 is the (silent) ignore value for OpenGL
+    object.specular_texture = 0;
     object.shader_prog = 0;
     object.model_matrix = mat4_identity();
     object.parent = NULL;
@@ -251,13 +253,22 @@ void scn_obj_set_buffers(scene_object* scn_obj) {
     glBindVertexArray(0);  // release VAO
 }
 
-void scn_obj_load_texture(scene_object* scn_obj, char* texture_path) {
-    glDeleteTextures(1, &scn_obj->texture);
+void scn_obj_load_texture(scene_object* scn_obj, char* texture_path, unsigned int type) {
 #ifdef SCN_OBJ_DEBUG
     printf("scn_obj_load_texture texture_path: %s\n", texture_path);
 #endif
-    glGenTextures(1, &scn_obj->texture);
-    glBindTexture(GL_TEXTURE_2D, scn_obj->texture);
+    unsigned int* texture_id = 0;
+    if (type & SCN_OBJ_TEXTURE_LOAD_DIFFUSE) {
+        texture_id = &scn_obj->diffuse_texture;
+    } else if (type & SCN_OBJ_TEXTURE_LOAD_SPECULAR) {
+        texture_id = &scn_obj->specular_texture;
+    } else {
+        printf("scn_obj_load_texture: invalid type specified\n");
+        return;
+    }
+    glDeleteTextures(1, texture_id);
+    glGenTextures(1, texture_id);
+    glBindTexture(GL_TEXTURE_2D, *texture_id);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
@@ -326,5 +337,6 @@ void scn_obj_clean(scene_object* scn_obj) {
     glDeleteVertexArrays(1, &scn_obj->VAO);
     glDeleteBuffers(1, &scn_obj->VBO);
     glDeleteBuffers(1, &scn_obj->EBO);
-    glDeleteTextures(1, &scn_obj->texture);
+    glDeleteTextures(1, &scn_obj->diffuse_texture);
+    glDeleteTextures(1, &scn_obj->specular_texture);
 }

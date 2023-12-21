@@ -95,7 +95,8 @@ int main(void) {
     scene_object loaded_models[N_MODELS];
     loaded_models[0] = scn_obj_load("models/potkan.obj", SCN_OBJ_IMPORT_UNIT_RESCALE
                                                           | SCN_OBJ_IMPORT_CENTRED);
-    scn_obj_load_texture(&loaded_models[0], "models/potkan.png");
+    scn_obj_load_texture(&loaded_models[0], "models/potkan.png", SCN_OBJ_TEXTURE_LOAD_DIFFUSE);
+    scn_obj_load_texture(&loaded_models[0], "models/potkan_specular.png", SCN_OBJ_TEXTURE_LOAD_SPECULAR);
 
     // Create pivot(s) for model(s)
     scene_object pivots[N_MODELS];
@@ -162,7 +163,7 @@ int main(void) {
             shader_set_uniform_float(shader, "u_specularity", 4.0f);
             shader_set_uniform_float(shader, "u_diffuse_intensity", 0.8f);
             shader_set_uniform_float(shader, "u_ambient_intensity", 0.1f);
-            shader_set_uniform_float(shader, "u_specular_intensity", 0.2f);
+            shader_set_uniform_float(shader, "u_specular_intensity", 0.4f);
 
             // transform - spin pivot(s) of the loaded model(s)
             mat4_rotate_y(&pivots[i].model_matrix, rotation_amount);
@@ -175,7 +176,12 @@ int main(void) {
             shader_set_uniform_mat4(shader, "u_model", model_to_world);
 
             // Draw
-            glBindTexture(GL_TEXTURE_2D, loaded_models[i].texture);
+            glActiveTexture(GL_TEXTURE0);
+            shader_set_uniform_tex_i(loaded_models[i].shader_prog, "u_diffuse_texture", 0);
+            glBindTexture(GL_TEXTURE_2D, loaded_models[i].diffuse_texture);
+            glActiveTexture(GL_TEXTURE1);
+            shader_set_uniform_tex_i(loaded_models[i].shader_prog, "u_specular_texture", 1);
+            glBindTexture(GL_TEXTURE_2D, loaded_models[i].specular_texture);
             glBindVertexArray(loaded_models[i].VAO);
             glDrawElements(GL_TRIANGLES, loaded_models[i].index_buffer_len, GL_UNSIGNED_INT, 0);
             // glDrawArrays(GL_TRIANGLES, 0, 3);

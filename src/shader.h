@@ -29,4 +29,6 @@ void shader_set_uniform_mat3(shader_program program, const char* name, mat3 mat)
 
 void shader_set_uniform_mat4(shader_program program, const char* name, mat4 mat);
 
+void shader_set_uniform_tex_i(shader_program program, const char* name, unsigned int tex_id);
+
 #endif

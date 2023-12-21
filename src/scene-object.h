@@ -23,6 +23,9 @@
 #define SCN_OBJ_IMPORT_FLIP_NORMALS         0b00100000
 #define SCN_OBJ_IMPORT_FLIP_WINDING_ORDER   0b00010000
 
+#define SCN_OBJ_TEXTURE_LOAD_DIFFUSE  0b10000000
+#define SCN_OBJ_TEXTURE_LOAD_SPECULAR 0b01000000
+
 typedef struct face {
     unsigned int indices[3];
 } face;
@@ -31,7 +34,8 @@ typedef struct scene_object {
     unsigned int VBO;
     unsigned int VAO;
     unsigned int EBO;
-    unsigned int texture;
+    unsigned int diffuse_texture;
+    unsigned int specular_texture;
     unsigned int shader_prog;
     vec3 *vertex_buffer;
     vec3 *normal_buffer;
@@ -67,7 +71,8 @@ void scn_obj_set_buffers(scene_object* scn_obj);
 
 // Creates a texture buffer for the scene object, sets tex parameters, then loads the
 // texture at the specified path, binding it to the scene object.
-void scn_obj_load_texture(scene_object* scn_obj, char* texture_path);
+// specify `type` of texture using `SCN_OBJ_TEXTURE_LOAD_...` defines.
+void scn_obj_load_texture(scene_object* scn_obj, char* texture_path, unsigned int type);
 
 // Calculate model to world matrix
 mat4 scn_obj_world_mat(scene_object* scn_obj);
