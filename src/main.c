@@ -130,7 +130,8 @@ int main(void) {
     mat4_translate(&view_matrix, 0.0f, 0.0f, -2.0f);
 
     projection_matrix = mat4_zero();
-    camera_persp(&projection_matrix, degrees_to_radians(45.0f), (float) screen_width / (float) screen_height, 0.1f, 100.0f);
+    // camera_persp(&projection_matrix, degrees_to_radians(45.0f), (float) screen_width / (float) screen_height, 0.1f, 100.0f);
+    camera_ortho(&projection_matrix, 0.0f, 0.64f * 2, 0.48f * 2, 0.0f, 0.01f, 100.0f);
 
     // Time
     double last_frame = glfwGetTime();

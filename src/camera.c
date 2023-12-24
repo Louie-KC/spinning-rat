@@ -2,11 +2,12 @@
 
 void camera_ortho(mat4 *mat, float left, float right, float top, float bottom, float near, float far) {
     mat->data[0]  = 2.0f/(right - left);
+    mat->data[3]  = -((right + left)/(right - left));
     mat->data[5]  = 2.0f/(top - bottom);
-    mat->data[10] = 2.0f/(far - near);
-    mat->data[12] = -((right + left)/(right - left));
-    mat->data[13] = -((top + bottom)/(top - bottom));
-    mat->data[14] = -((far + near)/(far - near));
+    mat->data[7]  = -((top + bottom)/(top - bottom));
+    mat->data[10] = -2.0f/(far - near);
+    mat->data[11] = -((far + near)/(far - near));
+    mat->data[15] = 1.0f;
 }
 
 void camera_persp(mat4 *mat, float fov_y, float aspect, float near, float far) {
