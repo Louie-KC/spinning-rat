@@ -10,12 +10,27 @@ uniform float u_specular_intensity;
 
 uniform sampler2D u_diffuse_texture;
 uniform sampler2D u_specular_texture;
+uniform sampler2D u_shadow_map;
 
 in vec3 v_pos;       // world
 in vec3 v_normal;    // world
 in vec2 v_texcoord;  // UV
+in vec4 v_pos_light_space;
 
 out vec4 o_colour;
+
+float shadow_calc() {
+    vec3 projection_coords = v_pos_light_space.xyz / v_pos_light_space.w;
+    projection_coords = projection_coords * 0.5 + 0.5;
+
+    float closest = texture(u_shadow_map, projection_coords.xy).r;
+    float current = projection_coords.z;
+    if (current > closest) {
+        return 0.25;
+    } else {
+        return 1.0;
+    }
+}
 
 void main() {
     vec3 diffuse_intensity = vec3(u_diffuse_intensity);
@@ -47,7 +62,10 @@ void main() {
         specular = specular_intensity * phong_angle * specular_tex_value;
     }
 
-    vec3 intensity = ambient_intensity + diffuse + specular;
+    // Shadows
+    float shadow = shadow_calc();
+    float shadow_norm = (shadow-0.25)/(1-0.25);
+    vec3 intensity = ambient_intensity + (diffuse * shadow) + (specular * shadow_norm);
 
     o_colour = texture(u_diffuse_texture, v_texcoord) * vec4(intensity, 1);
     // o_colour = vec4(intensity, 1);
