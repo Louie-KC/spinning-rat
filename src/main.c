@@ -84,6 +84,11 @@ int main(void) {
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
+    // Mac 'retina' resolution fix? window and viewport are double the specified size when
+    // glfwCreateWindow is called. May be a preprocessor thing if Mac specific.
+    screen_width  *= 2;
+    screen_height *= 2;
+
     // glad init
     if (!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress)) {
         printf("GLAD init failure\n");
@@ -144,7 +149,13 @@ int main(void) {
     glEnable(GL_DEPTH_TEST);
 
     while (!glfwWindowShouldClose(window)) {
+        // Update
         process_input(window, frame_time);
+        float rotation_amount = degrees_to_radians(ROTATION_DEGREES_PER_SEC * frame_time);
+        for (int i = 0; i < N_MODELS; i++) {
+            // transform - spin pivot(s) of the loaded model(s)
+            mat4_rotate_y(&pivots[i].model_matrix, rotation_amount);
+        }
 
         glClearColor(0.2f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -165,9 +176,6 @@ int main(void) {
             shader_set_uniform_float(shader, "u_diffuse_intensity", 0.8f);
             shader_set_uniform_float(shader, "u_ambient_intensity", 0.1f);
             shader_set_uniform_float(shader, "u_specular_intensity", 0.4f);
-
-            // transform - spin pivot(s) of the loaded model(s)
-            mat4_rotate_y(&pivots[i].model_matrix, rotation_amount);
 
             // Calculate and pass in mvp matrix
             mat4 mvp = scn_obj_mvp(&loaded_models[i], view_matrix, projection_matrix);
